@@ -226,14 +226,14 @@ export default function DesignMdView({ isImporting = false }: Props) {
 
           {/* Overview */}
           <section ref={(el) => { sectionRefs.current["overview"] = el; }} className="pb-10">
-            <h5 className="text-sm font-medium text-foreground mb-6">Overview</h5>
+            <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Overview</h5>
             <OverviewSection snapshot={snapshot} onNavigate={(id) => scrollTo(id as SectionId)} />
           </section>
           <Separator className="mb-10" />
 
           {/* Schemes */}
           <section ref={(el) => { sectionRefs.current["schemes"] = el; }} className="pb-10">
-            <h5 className="text-sm font-medium text-foreground mb-6">Schemes</h5>
+            <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Schemes</h5>
             <SchemesSection colorTokens={byCategory("colors")} />
           </section>
           <Separator className="mb-10" />
@@ -242,7 +242,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("colors").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["colors"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Colors</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Colors</h5>
                 <ColorsSection tokens={byCategory("colors")} hasDark={hasDark} />
               </section>
               <Separator className="mb-10" />
@@ -253,7 +253,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("typography").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["typography"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Typography</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Typography</h5>
                 <TypographySection tokens={byCategory("typography")} />
               </section>
               <Separator className="mb-10" />
@@ -264,7 +264,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("spacing").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["spacing"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Spacing</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Spacing</h5>
                 <SpacingSection tokens={byCategory("spacing")} />
               </section>
               <Separator className="mb-10" />
@@ -275,7 +275,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("radius").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["radius"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Border Radius</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Border Radius</h5>
                 <RadiusSection tokens={byCategory("radius")} />
               </section>
               <Separator className="mb-10" />
@@ -286,7 +286,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("shadows").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["shadows"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Shadows</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Shadows</h5>
                 <ShadowsSection tokens={byCategory("shadows")} />
               </section>
               <Separator className="mb-10" />
@@ -297,7 +297,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {byCategory("animation").length > 0 && (
             <>
               <section ref={(el) => { sectionRefs.current["animation"] = el; }} className="pb-10">
-                <h5 className="text-sm font-medium text-foreground mb-6">Animation</h5>
+                <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Animation</h5>
                 <AnimationSection tokens={byCategory("animation")} />
               </section>
               <Separator className="mb-10" />
@@ -307,7 +307,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {/* Other */}
           {byCategory("other").length > 0 && (
             <section ref={(el) => { sectionRefs.current["other"] = el; }} className="pb-10">
-              <h5 className="text-sm font-medium text-foreground mb-6">Other</h5>
+              <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Other</h5>
               <OtherSection tokens={byCategory("other")} />
             </section>
           )}
