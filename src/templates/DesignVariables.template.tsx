@@ -31,21 +31,23 @@ const TypographySection= dynamic(() => import("./dsv/TypographySection").then((m
 const SpacingSection   = dynamic(() => import("./dsv/SpacingSection"  ).then((m) => ({ default: m.SpacingSection   })), { ssr: false, loading: SectionSkeleton });
 const RadiusSection    = dynamic(() => import("./dsv/RadiusSection"   ).then((m) => ({ default: m.RadiusSection    })), { ssr: false, loading: SectionSkeleton });
 const ShadowsSection   = dynamic(() => import("./dsv/ShadowsSection"  ).then((m) => ({ default: m.ShadowsSection   })), { ssr: false, loading: SectionSkeleton });
+const MotionSection    = dynamic(() => import("./dsv/MotionSection"   ).then((m) => ({ default: m.MotionSection    })), { ssr: false, loading: SectionSkeleton });
 const AnimationSection = dynamic(() => import("./dsv/AnimationSection").then((m) => ({ default: m.AnimationSection  })), { ssr: false, loading: SectionSkeleton });
 const OtherSection     = dynamic(() => import("./dsv/OtherSection"    ).then((m) => ({ default: m.OtherSection     })), { ssr: false, loading: SectionSkeleton });
 
 // ── Section config ─────────────────────────────────────────────────────────────
 
-type SectionId = TokenCategory | "overview" | "schemes";
+type SectionId = TokenCategory | "overview" | "schemes" | "motion";
 
-const SECTIONS: Array<{ id: SectionId; label: string }> = [
-  { id: "overview",   label: "Overview"   },
-  { id: "schemes",    label: "Schemes"    },
+const SECTIONS: Array<{ id: SectionId; label: string; alwaysShow?: boolean }> = [
+  { id: "overview",   label: "Overview",   alwaysShow: true },
+  { id: "schemes",    label: "Schemes",    alwaysShow: true },
   { id: "colors",     label: "Colors"     },
   { id: "typography", label: "Typography" },
   { id: "spacing",    label: "Spacing"    },
   { id: "radius",     label: "Radius"     },
   { id: "shadows",    label: "Shadows"    },
+  { id: "motion",     label: "Motion",     alwaysShow: true },
   { id: "animation",  label: "Animation"  },
   { id: "other",      label: "Other"      },
 ];
@@ -173,7 +175,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
   });
 
   const visibleSections = SECTIONS.filter((s) => {
-    if (s.id === "overview" || s.id === "schemes") return true;
+    if (s.alwaysShow) return true;
     return byCategory(s.id as TokenCategory).length > 0;
   });
 
@@ -224,7 +226,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
 
       {/* ── Scrollable content ───────────────────────────────────────────── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="px-6 py-6 flex flex-col gap-0 max-w-4xl">
+        <div className="px-6 py-6 flex flex-col gap-0 max-w-6xl">
 
           {/* Overview */}
           <section ref={(el) => { sectionRefs.current["overview"] = el; }} className="pb-10">
@@ -294,6 +296,13 @@ export default function DesignMdView({ isImporting = false }: Props) {
               <Separator className="mb-10" />
             </>
           )}
+
+          {/* Motion — always visible; tokens are hardcoded in styles/motion.css */}
+          <section ref={(el) => { sectionRefs.current["motion"] = el; }} className="pb-10">
+            <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Motion</h5>
+            <MotionSection />
+          </section>
+          <Separator className="mb-10" />
 
           {/* Animation */}
           {byCategory("animation").length > 0 && (

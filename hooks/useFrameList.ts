@@ -24,6 +24,8 @@ export interface UseFrameListReturn {
   error:           string | null;
   /** Re-fetch from the API, bypassing cache */
   refresh:         () => void;
+  /** True while a manual refresh is in progress (frames still visible) */
+  isRefreshing:    boolean;
 }
 
 // ── Cache ──────────────────────────────────────────────────────────────────────
@@ -92,10 +94,11 @@ export function useFrameList(
   fileKey: string | null,
   token:   string | null
 ): UseFrameListReturn {
-  const [frames,     setFrames]     = useState<FigmaFrame[]>([]);
-  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  const [status,     setStatus]     = useState<FrameLoadStatus>("idle");
-  const [error,      setError]      = useState<string | null>(null);
+  const [frames,       setFrames]       = useState<FigmaFrame[]>([]);
+  const [thumbnails,   setThumbnails]   = useState<Record<string, string>>({});
+  const [status,       setStatus]       = useState<FrameLoadStatus>("idle");
+  const [error,        setError]        = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Prevent stale async callbacks from updating state after unmount or re-fetch
   const fetchIdRef = useRef(0);
@@ -108,6 +111,7 @@ export function useFrameList(
       if (bustCache) {
         cache = null;
         localStorage.removeItem(lsKey(fileKey));
+        setIsRefreshing(true);
       }
 
       // Serve from in-memory cache when fresh
@@ -115,11 +119,12 @@ export function useFrameList(
         setFrames(cache!.frames);
         setThumbnails(cache!.thumbnails);
         setStatus("done");
+        setIsRefreshing(false);
         return;
       }
 
       const fetchId = ++fetchIdRef.current;
-      setStatus("loading");
+      if (!bustCache) setStatus("loading");
       setError(null);
 
       // ── Hydrate thumbnails from localStorage immediately ──────────────────
@@ -163,6 +168,7 @@ export function useFrameList(
               thumbnailUrl: thumbs[f.id] ?? f.thumbnailUrl,
             }))
           );
+          setIsRefreshing(false);
         });
       } catch (err) {
         if (fetchId !== fetchIdRef.current) return;
@@ -172,6 +178,7 @@ export function useFrameList(
             : "Could not load frames — check your connection";
         setError(msg);
         setStatus("error");
+        setIsRefreshing(false);
       }
     },
     [fileKey, token]
@@ -200,6 +207,7 @@ export function useFrameList(
     thumbnails,
     status,
     error,
+    isRefreshing,
     refresh: () => fetchFrames(true),
   };
 }

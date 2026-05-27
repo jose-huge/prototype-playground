@@ -435,6 +435,20 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   // Filesystem + localStorage backed component list
   const [builtComponentsList, setBuiltComponentsList] = useState<ComponentRecord[]>([]);
 
+  // Pending build metadata — component is added to the sidebar only when its
+  // file lands on disk (detected by polling), not when the clipboard copy fires.
+  const pendingBuildRef = useRef<{
+    name:      string;
+    frame:     string;
+    frameId?:  string;
+    builtWith: string;
+    date:      string;
+  } | null>(null);
+
+  // Names of component files that already existed on disk when this session
+  // started. Used to distinguish pre-existing ('done') from newly built ('current').
+  const startupNamesRef = useRef<Set<string> | null>(null);
+
   // DONE section collapse state
   const [doneOpen, setDoneOpen] = useState(false);
 
@@ -464,7 +478,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [draftLogoSrc, setDraftLogoSrc] = useState(DEFAULT_LOGO);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [framework,      setFramework]      = useState<FrameworkKey>("react");
-  const [animation,      setAnimation]      = useState<AnimationKey[]>(["css"]);
+  const [animation,      setAnimation]      = useState<AnimationKey[]>(["css", "gsap"]);
   const [draftFramework, setDraftFramework] = useState<FrameworkKey>("react");
   const [draftAnimation, setDraftAnimation] = useState<AnimationKey[]>(["css"]);
   // Original stack — recorded on first build, never changed after that
@@ -483,8 +497,8 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     if (savedFw) { setFramework(savedFw); setDraftFramework(savedFw); }
     try {
       const raw = localStorage.getItem("playground_animation");
-      const parsed = raw ? (JSON.parse(raw) as AnimationKey[]) : ["css"];
-      const valid = (Array.isArray(parsed) && parsed.length > 0 ? parsed : ["css"]) as AnimationKey[];
+      const parsed = raw ? (JSON.parse(raw) as AnimationKey[]) : ["css", "gsap"];
+      const valid = (Array.isArray(parsed) && parsed.length > 0 ? parsed : ["css", "gsap"]) as AnimationKey[];
       setAnimation(valid);
       setDraftAnimation(valid);
     } catch {
@@ -506,26 +520,48 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
       .then((r) => r.json())
       .then((data: { components: Array<{ componentName: string }> }) => {
         const diskNames = data.components.map((c) => c.componentName);
+
+        // First scan: snapshot what was already on disk at session start.
+        // Files present now = pre-existing ('done').
+        // Files that appear on subsequent polls = newly built ('current').
+        const isFirstScan = startupNamesRef.current === null;
+        if (isFirstScan) {
+          startupNamesRef.current = new Set(diskNames.map((n) => n.toLowerCase()));
+        }
+
         setBuiltComponentsList((prev) => {
           // Case-insensitive lookup: Figma frame names are often lowercase ("tagline")
           // but disk files are PascalCase ("Tagline"). Match them by lowercased key so
           // the disk entry inherits the existing metadata instead of creating a duplicate.
           const prevMapLower = new Map(prev.map((c) => [c.name.toLowerCase(), c]));
+          const diskLower = new Set(diskNames.map((n) => n.toLowerCase()));
+
           // Disk-based components — use PascalCase name from disk, keep existing metadata
           const diskEntries = diskNames.map((name) => {
             const existing = prevMapLower.get(name.toLowerCase());
-            return existing ? { ...existing, name } : {
-              name,
-              frame: "",
-              builtWith: "",
-              date: "",
-              status: 'done' as const,
-              variations: [],
-            };
+            if (existing) return { ...existing, name };
+
+            // First scan: file pre-existed this session — mark as done
+            if (isFirstScan) {
+              return { name, frame: "", builtWith: "", date: "", status: 'done' as const, variations: [] };
+            }
+
+            // New file appeared during this session — check for pending build metadata
+            const pending = pendingBuildRef.current;
+            if (pending && name.toLowerCase() === pending.name.toLowerCase()) {
+              pendingBuildRef.current = null;
+              return { ...pending, name, status: 'current' as const, variations: [] };
+            }
+
+            // New file with no pending build (e.g. pasted directly into Claude Code) → current
+            return { name, frame: "", builtWith: "", date: "", status: 'current' as const, variations: [] };
           });
-          // Preserve manually-tracked items that don't exist on disk
-          const diskLower = new Set(diskNames.map((n) => n.toLowerCase()));
-          const manualEntries = prev.filter((c) => !diskLower.has(c.name.toLowerCase()));
+
+          // Preserve manually-tracked items that aren't on disk, but drop any
+          // stale 'current' entries whose file never landed (e.g. from a previous session).
+          const manualEntries = prev.filter(
+            (c) => !diskLower.has(c.name.toLowerCase()) && c.status !== 'current'
+          );
           const merged = [...diskEntries, ...manualEntries];
           saveStoredComponents(merged);
           return merged;
@@ -550,8 +586,14 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   useEffect(() => {
     const handler = (e: Event) => {
       const item = (e as CustomEvent<string>).detail;
-      setLocalItem(item);
-      setFigmaConfigOpen(true);
+      if (item === "Settings") {
+        // Re-import / Open Settings — open the Figma config panel
+        setFigmaConfigOpen(true);
+      } else {
+        // "View reference page" etc — navigate to that sidebar item
+        setLocalItem(item);
+        setFigmaConfigOpen(false);
+      }
     };
     window.addEventListener("playground:navigate", handler);
     return () => window.removeEventListener("playground:navigate", handler);
@@ -1093,27 +1135,18 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               isLoading={frameLoading}
               onBuild={(frameId) => {
                 setBuiltFrameIds((prev) => new Set([...prev, frameId]));
-                // Normalise to PascalCase immediately so the stored name always
-                // matches the disk filename that /api/components will generate.
+                // Store pending build metadata — the component is added to the sidebar
+                // only after its file lands on disk (detected by refreshComponents polling).
                 const rawName = selectedFrame?.frame.parentName ?? selectedFrame?.frame.name ?? "";
                 const name = toPascalCase(rawName);
-                const frame = selectedFrame?.frame.name ?? "";
-                const builtWith = stackLabel(framework, animation);
-                const date = new Date().toISOString().split("T")[0];
                 if (name) {
-                  setBuiltComponentsList((prev) => {
-                    // Case-insensitive lookup so pre-existing lowercase entries are updated
-                    const existing = prev.find((c) => c.name.toLowerCase() === name.toLowerCase());
-                    const updated = existing
-                      ? prev.map((c) =>
-                          c.name.toLowerCase() === name.toLowerCase()
-                            ? { ...c, name, frame, frameId, builtWith, date }
-                            : c
-                        )
-                      : [...prev, { name, frame, frameId, builtWith, date, status: 'current' as const, variations: [] }];
-                    saveStoredComponents(updated);
-                    return updated;
-                  });
+                  pendingBuildRef.current = {
+                    name,
+                    frame:     selectedFrame?.frame.name ?? "",
+                    frameId,
+                    builtWith: stackLabel(framework, animation),
+                    date:      new Date().toISOString().split("T")[0],
+                  };
                 }
                 if (originalFramework === null) {
                   setOriginalFramework(framework);

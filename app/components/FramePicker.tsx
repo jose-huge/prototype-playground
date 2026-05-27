@@ -213,7 +213,7 @@ export default function FramePicker({
   onOpenConfig,
 }: Props) {
   const { config, isConnected, isLoading: configLoading } = useFigmaConfig();
-  const { framesByPage, allFrames, status, error, refresh } = useFrameList(
+  const { framesByPage, allFrames, status, error, refresh, isRefreshing = false } = useFrameList(
     config?.fileKey ?? null,
     config?.token ?? null
   );
@@ -352,12 +352,13 @@ export default function FramePicker({
           </SidebarGroupLabel>
           <button
             type="button"
-            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
+            className="text-muted-foreground hover:text-sidebar-foreground transition-colors p-1 rounded disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={refresh}
+            disabled={isRefreshing}
             title="Refresh frames"
             aria-label="Refresh frame list"
           >
-            <RefreshCw size={11} />
+            <RefreshCw size={11} className={isRefreshing ? "animate-spin" : ""} />
           </button>
         </div>
 

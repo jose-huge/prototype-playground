@@ -1,0 +1,84 @@
+/* MotionSection — demo animations
+ * All animation is CSS @keyframes; React only toggles the .playing class.
+ * --ball-dur and --ball-ease are injected via inline style per-row.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Track (the pill that contains the ball) ─────────────────────────────── */
+.track {
+  position: relative;
+  width: 180px;
+  height: 20px;
+  background: var(--color-neutral-lighter, #dad9d9);
+  border-radius: 999px;
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 150ms;
+}
+
+.track:hover,
+.track:focus-visible {
+  background: var(--color-neutral-light, #b5b4b3);
+  outline: none;
+}
+
+/* ── Ball ────────────────────────────────────────────────────────────────── */
+/* CSS transition handles both directions automatically:
+   click 1 (→) adds .ballAtEnd, click 2 (←) removes it.
+   --ball-dur and --ball-ease are set via inline style per-row.          */
+.ball {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-noir-darkest, #000);
+  transform: translateX(0);
+  transition: transform
+    var(--ball-dur,  var(--duration-sm, 200ms))
+    var(--ball-ease, var(--ease-out, cubic-bezier(0.22, 0.61, 0.36, 1)));
+  will-change: transform;
+}
+
+/* End position — track 180px, ball 12px, 4px padding each side → 160px travel */
+.ballAtEnd {
+  transform: translateX(160px);
+}
+
+/* ── Bezier SVG curve (stroke inherits currentColor) ─────────────────────── */
+.bezierCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.bezierCard:hover .ball {
+  /* Easing hover demo — purely declarative, see inline transition in JSX */
+}
+
+/* ── Shift bar ───────────────────────────────────────────────────────────── */
+.shiftBar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-noir-darkest, #000);
+  flex-shrink: 0;
+}
+
+/* ── Preset table row ────────────────────────────────────────────────────── */
+.presetRow {
+  display: grid;
+  grid-template-columns: 14rem 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.presetRow:hover {
+  background: var(--muted, #f5f5f5);
+}
