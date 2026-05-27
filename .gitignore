@@ -39,6 +39,9 @@ yarn-error.log*
 *api_key*
 *apikey*
 *.key
+# …but never ignore actual source files in app/ or components/
+!app/**
+!components/**
 
 # generated per-project files (do not commit)
 src/styles/tokens.css
