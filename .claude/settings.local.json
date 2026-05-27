@@ -98,7 +98,9 @@
       "Bash(sed -i '' 's|\\\\/\\\\* NB International Pro — Compass Pathways primary typeface|/* Primary typeface|' /Users/joseramirez/compass-local-01/styles/fonts.css)",
       "Bash(sed -i '' 's|background: var\\(--cp-noir-dark, #0a0a0a\\);|background: #0a0a0a;|' /Users/joseramirez/compass-local-01/app/preview/layout.tsx)",
       "Bash(mv /Users/joseramirez/compass-local-01 /Users/joseramirez/prototype-playground-01)",
-      "Bash(git init *)"
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
