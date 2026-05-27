@@ -1,0 +1,23 @@
+.subMenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-md) var(--ease-out);
+}
+
+.subMenuOpen {
+  grid-template-rows: 1fr;
+}
+
+.subMenuInner {
+  overflow: hidden;
+}
+
+.chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform var(--duration-sm) var(--ease-out);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}

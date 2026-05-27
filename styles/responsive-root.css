@@ -1,0 +1,65 @@
+/* Responsive root
+ *
+ * Single solution for "make this responsive component work in
+ * BOTH the real viewport AND a resizable preview frame."
+ *
+ *   - The document root (<html>) is established as a named
+ *     container `pg-root` whose inline-size == viewport width.
+ *   - The preview's .cp-stage__frame ALSO establishes a
+ *     `pg-root` container at the frame's width.
+ *
+ * Component CSS authors breakpoint rules as
+ *     `@container pg-root (...)`
+ * which fires against the nearest pg-root — viewport in
+ * production, frame in preview. No iframe needed, no per-
+ * component duplication, no preview-only stylesheet.
+ *
+ * Fluid clamps (`vw`) are likewise rebound to `cqi` inside any
+ * pg-root container. 1cqi at the document root == 1% of the
+ * viewport's inline-size == 1vw, so production behavior is
+ * preserved. Inside the preview frame, 1cqi == 1% of the
+ * frame's inline-size — fluid type/spacing scales with the
+ * frame, just like a real viewport.
+ */
+
+html {
+  container-type: inline-size;
+  container-name: pg-root;
+}
+
+/* ─── Rebind fluid clamps from vw → cqi ────────────────────
+ * Source values come from styles/typography.css and
+ * styles/spacing.css and must stay in lockstep with them.
+ * Same arithmetic, just cqi instead of vw. */
+@container pg-root (min-width: 0) {
+  /* Type — fluid scale (lock at 600px → 1440px) */
+  :root, .cp-stage__frame {
+    --fs-display-2-fluid: clamp(6.25rem,  5.3571rem + 2.381cqi,  7.5rem);
+    --fs-display-m-fluid: clamp(2.75rem,  0.6071rem + 5.7143cqi, 5.75rem);
+    --fs-display-s-fluid: clamp(2.75rem,  0.7857rem + 5.2381cqi, 5.5rem);
+    --fs-h1-fluid:        clamp(2.75rem,  1.5rem    + 3.3333cqi, 4.5rem);
+    --fs-h2-fluid:        clamp(2.5rem,   1.9643rem + 1.4286cqi, 3.25rem);
+    --fs-h3-fluid:        clamp(2rem,     1.4643rem + 1.4286cqi, 2.75rem);
+    --fs-h4-fluid:        clamp(1.75rem,  1.3929rem + 0.9524cqi, 2.25rem);
+    --fs-h5-fluid:        clamp(1.375rem, 1.1071rem + 0.7143cqi, 1.75rem);
+    --fs-h6-fluid:        clamp(1.125rem, 0.9464rem + 0.4762cqi, 1.375rem);
+
+    /* Spacing — fluid block / section */
+    --space-fluid-block:      clamp(1.5rem, 0.4286rem  + 2.8571cqi, 3rem);
+    --space-fluid-block-lg:   clamp(2rem,   0.5714rem  + 3.8095cqi, 4rem);
+    --space-fluid-section:    clamp(4rem,   1.1429rem  + 7.619cqi,  8rem);
+    --space-fluid-section-md: clamp(3rem,   0.8571rem  + 5.7143cqi, 6rem);
+    --section-pad-y: var(--space-fluid-section);
+    --section-pad-x: clamp(1.5rem, -0.4286rem + 5.1429cqi, 4rem);
+
+    /* Hero shape — fluid heights/gaps */
+    --hero-h:             clamp(43.75rem, 21.4286rem + 59.5238cqi, 64rem);
+    --hero-pad-y:         var(--space-fluid-section);
+    --hero-stagger-shift: clamp(1.5rem, -2.5rem + 10.6667cqi, 7.5rem);
+    --hero-stagger-gap:   clamp(0.25rem, -0.6429rem + 2.381cqi, 1.5rem);
+
+    /* LP Hero shape */
+    --lp-hero-h:       clamp(43.75rem, 24rem + 52.6667cqi, 64rem);
+    --lp-hero-col-gap: clamp(2rem, -1rem + 6.6667cqi, 7rem);
+  }
+}

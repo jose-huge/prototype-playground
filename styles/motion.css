@@ -1,0 +1,180 @@
+/* Motion & Effect Tokens
+ *
+ * PRIMITIVES first (durations, easings, distances), then SEMANTIC
+ * tokens that compose them by *role* (hover, reveal, expand, modal).
+ *
+ * Brand posture (per README): restrained. Soft fades and short
+ * translates, 200–400ms, ease-out. No bounce. No spring. No
+ * parallax. Cursor and hover should feel deliberate, not playful.
+ *
+ * Usage:
+ *   transition: var(--transition-hover);
+ *   transition-timing-function: var(--ease-out);
+ *   transition-duration: var(--duration-md);
+ *   filter: var(--blur-glass);
+ *
+ * Honor user motion preferences automatically — see the
+ * @media (prefers-reduced-motion) block at the bottom.
+ */
+
+:root {
+  /* ─── Primitives — Duration ────────────────────────────────
+   * Five steps. Anything longer than 600ms doesn't belong on
+   * a UI element in this brand; reserve it for ambient/scroll.
+   * ──────────────────────────────────────────────────────── */
+  --duration-instant: 0ms;
+  --duration-xs:      120ms;   /* micro feedback (press, tap-state) */
+  --duration-sm:      200ms;   /* hover, color, opacity */
+  --duration-md:      320ms;   /* reveal, expand, panel slide */
+  --duration-lg:      480ms;   /* page-level transitions */
+  --duration-xl:      640ms;   /* ambient / decorative only */
+
+  /* ─── Primitives — Easing ────────────────────────────────── */
+  --ease-linear:    cubic-bezier(0, 0, 1, 1);
+  --ease-out:       cubic-bezier(0.22, 0.61, 0.36, 1);  /* default */
+  --ease-in:        cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  --ease-in-out:    cubic-bezier(0.65, 0.05, 0.36, 1);
+  --ease-emphasized:cubic-bezier(0.2, 0, 0, 1);          /* slow-finish reveals */
+  --ease-standard:  var(--ease-out);                     /* alias for default */
+
+  /* ─── Primitives — Translate distances ───────────────────── */
+  --motion-shift-xs: 2px;
+  --motion-shift-sm: 4px;
+  --motion-shift-md: 8px;
+  --motion-shift-lg: 16px;
+
+  /* ─── Primitives — Scale steps (press / hover) ───────────── */
+  --motion-scale-press: 0.98;
+  --motion-scale-rest:  1;
+  --motion-scale-hover: 1.02;   /* only used sparingly — not for buttons */
+
+  /* ─── Primitives — Blur (effect tokens) ──────────────────── */
+  --blur-none:    0;
+  --blur-glass:   blur(4px);    /* translucent surface backing */
+  --blur-deep:    blur(12px);   /* modal scrim, frosted overlay */
+  --blur-soft:    blur(24px);   /* ambient hero treatments */
+
+  /* ─── Primitives — Overlay tints (for image protection) ──── */
+  --tint-ink-10:    rgba(11, 5, 3, 0.10);
+  --tint-ink-20:    rgba(11, 5, 3, 0.20);
+  --tint-ink-40:    rgba(11, 5, 3, 0.40);
+  --tint-cream-80:  rgba(255, 239, 210, 0.80);
+  --tint-white-10:  rgba(255, 255, 255, 0.10);
+  --tint-white-20:  rgba(255, 255, 255, 0.20);
+
+  /* ─── Semantic — Transition presets ──────────────────────── */
+  /* Short interactive feedback (color, bg, border, opacity).   */
+  --transition-hover:   color var(--duration-sm) var(--ease-out),
+                        background-color var(--duration-sm) var(--ease-out),
+                        border-color var(--duration-sm) var(--ease-out),
+                        opacity var(--duration-sm) var(--ease-out);
+
+  /* Press / active feedback (scale + opacity, very fast).      */
+  --transition-press:   transform var(--duration-xs) var(--ease-out),
+                        opacity var(--duration-xs) var(--ease-out);
+
+  /* Reveal/expand: width, max-width, opacity, transform.       */
+  --transition-reveal:  max-width var(--duration-md) var(--ease-out),
+                        width var(--duration-md) var(--ease-out),
+                        opacity var(--duration-md) var(--ease-out),
+                        transform var(--duration-md) var(--ease-out);
+
+  /* Layout shifts when a component opens/closes.               */
+  --transition-expand:  width var(--duration-md) var(--ease-emphasized),
+                        height var(--duration-md) var(--ease-emphasized),
+                        max-width var(--duration-md) var(--ease-emphasized),
+                        max-height var(--duration-md) var(--ease-emphasized);
+
+  /* Page-level (modals, drawers).                              */
+  --transition-modal:   opacity var(--duration-lg) var(--ease-out),
+                        transform var(--duration-lg) var(--ease-out);
+
+  /* Modal scrim (backdrop) fade.                               */
+  --transition-modal-scrim:
+        opacity var(--duration-md) var(--ease-out);
+
+  /* ─── Semantic — Single-property fallbacks ───────────────── */
+  --transition-color:    color var(--duration-sm) var(--ease-out);
+  --transition-bg:       background-color var(--duration-sm) var(--ease-out);
+  --transition-opacity:  opacity var(--duration-sm) var(--ease-out);
+  --transition-transform:transform var(--duration-md) var(--ease-out);
+
+  /* ─── Semantic — Effect tokens ───────────────────────────── */
+  --effect-glass-bg:     var(--tint-white-10);
+  --effect-glass-blur:   var(--blur-glass);
+  --effect-scrim:        var(--tint-ink-40);
+  --effect-image-cover:  var(--tint-cream-80);
+
+  /* Hero scrim — bottom-weighted gradient that protects display
+   * type sitting over imagery without darkening the whole frame.
+   * Matches the Figma /HP-Hero (size=XS) rgba(0,0,0,0)→rgba(0,0,0,0.4) treatment. */
+  --effect-hero-scrim:   linear-gradient(
+                            to bottom,
+                            rgba(11, 5, 3, 0)   0%,
+                            rgba(11, 5, 3, 0)   45%,
+                            rgba(11, 5, 3, 0.40) 100%
+                         );
+
+  /* LP-Hero scrim — heavier bottom-weighted gradient. The figma
+   * source ramps to 0.8 at the bottom because LP-Hero anchors
+   * its content right at the lower edge with no extra padding
+   * underneath. Two variants: light (white text over dark scrim)
+   * and dark (black text over cream-white scrim). */
+  --effect-lp-hero-scrim-light:
+        linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0)    0%,
+            rgba(0, 0, 0, 0)   50%,
+            rgba(0, 0, 0, 0.80) 100%
+        );
+  --effect-lp-hero-scrim-dark:
+        linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0)    0%,
+            rgba(255, 255, 255, 0)   50%,
+            rgba(255, 255, 255, 0.85) 100%
+        );
+
+  /* ─── Semantic — Component-specific transitions ──────────── */
+  /* Primary button — pill width + echo collapse + colors      */
+  --transition-button-primary:
+        width var(--duration-md) var(--ease-emphasized),
+        background-color var(--duration-md) var(--ease-emphasized),
+        color var(--duration-md) var(--ease-emphasized);
+
+  /* Animated arrow nudge inside link/primary button           */
+  --transition-arrow-shift:
+        transform var(--duration-md) var(--ease-out);
+
+  /* Audio player open/close                                   */
+  --transition-audio-expand:
+        width var(--duration-md) var(--ease-emphasized);
+  --transition-audio-title:
+        opacity var(--duration-md) var(--ease-out),
+        transform var(--duration-md) var(--ease-out);
+
+  /* Audio waveform played/unplayed swap                       */
+  --transition-audio-bar:
+        opacity var(--duration-sm) var(--ease-out),
+        background-color var(--duration-sm) var(--ease-out);
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────
+ * Respect OS-level preference. Don't kill transitions entirely —
+ * collapse them to ~1ms so layout still settles, but motion is
+ * imperceptible.
+ * ──────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-xs: 1ms;
+    --duration-sm: 1ms;
+    --duration-md: 1ms;
+    --duration-lg: 1ms;
+    --duration-xl: 1ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

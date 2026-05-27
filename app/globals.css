@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import "../styles/fonts.css";
+@import "../styles/colors.css";
+@import "../styles/schemes.css";
+@import "../styles/typography.css";
+@import "../styles/spacing.css";
+@import "../styles/motion.css";
+
+/* ── Oreo focus ring ─────────────────────────────────────────────────────
+   Visible on any background: white inner gap + black outer ring.
+   Stacking (inside → out): element → 2px white → 2px black.
+   !important beats Tailwind utility specificity (outline-none, ring-*).
+   Defined globally so every button, link, and input inherits it.
+   Components may override border-radius only to match their own shape
+   (e.g. pill buttons get border-radius: 9999px). Never remove the ring. */
+:focus-visible {
+  outline: 2px solid #000000 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px #ffffff !important;
+  border-radius: 2px;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  container-type: inline-size;
+  container-name: pg-root;
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+@keyframes pg-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

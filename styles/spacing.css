@@ -1,0 +1,412 @@
+/* Spacing, Radius, Shadows, Grid
+ *
+ * PRIMITIVES first, SEMANTIC tokens compose them.
+ * Three breakpoints — Mobile / Tablet / Desktop — with explicit
+ * spacing values per breakpoint and fluid clamp() values that
+ * interpolate between Mobile@600px and Desktop@1440px.
+ *
+ *   Mobile  ≤ 600px
+ *   Tablet    800–1199px
+ *   Desktop ≥ 1200px (locked at 1440px for clamp upper bound)
+ *
+ * Source: Figma /Radius, /Shadows, /Grid pages.
+ */
+
+:root {
+  /* ─── Primitives — Space scale (4px base) ──────────────── */
+  --space-0:    0;
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    24px;
+  --space-6:    32px;
+  --space-7:    40px;
+  --space-8:    48px;
+  --space-9:    64px;
+  --space-10:   80px;
+  --space-11:   96px;
+  --space-12:   128px;
+
+  /* ─── Primitives — Fluid space (locks at 600px / 1440px) ─ */
+  --space-fluid-block:    clamp(1.5rem,  0.4286rem + 2.8571cqi, 3rem);   /* 24→48 */
+  --space-fluid-block-lg: clamp(2rem,    0.5714rem + 3.8095cqi, 4rem);   /* 32→64 */
+  --space-fluid-section:  clamp(4rem,    1.1429rem + 7.619cqi,  8rem);   /* 64→128 */
+  --space-fluid-section-md: clamp(3rem,  0.8571rem + 5.7143cqi, 6rem);   /* 48→96 */
+
+  /* ─── Named fluid space scale (Mobile@375px → Desktop@1440px) ─
+   * Semantic space tokens from the updated design system spec.
+   * --space-1400/1000 are fluid; lower steps are fixed.
+   * ──────────────────────────────────────────────────────────── */
+  --space-1400: clamp(5rem, calc(4.42cqi + 3.297rem), 9.6875rem);
+  --space-1000: clamp(4rem, calc(2.17cqi + 3.162rem), 6.3125rem);
+  --space-800:  4rem;
+  --space-600:  3rem;
+  --space-500:  2.5rem;
+  --space-400:  2rem;
+  --space-300:  1.5rem;
+  --space-200:  1rem;
+  --space-150:  0.75rem;
+  --space-100:  0.5rem;
+  --space-050:  0.25rem;
+
+  /* ─── Named padding tokens ──────────────────────────────────── */
+  --padding-section-large:  clamp(4rem, calc(10.68cqi - 0.272rem), 11rem);
+  --padding-section-medium: clamp(3rem, calc(4.99cqi + 1.074rem), 6.3125rem);
+  --padding-section-small:  clamp(2rem, calc(2.55cqi + 1.019rem), 3.6875rem);
+  --padding-horizontal:     clamp(1.5rem, calc(1.51cqi + 0.919rem), 2.5rem);
+  --grid-gutter:            1.5rem;
+
+  /* ─── Primitives — Radius ──────────────────────────────── */
+  --radius-none:   0;
+  --radius-xs:     4px;
+  --radius-sm:     8px;
+  --radius-md:     16px;
+  --radius-lg:     32px;
+  --radius-round:  9999px;
+
+  /* ─── Primitives — Shadows ─────────────────────────────── */
+  --shadow-xs:  0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-sm:  0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px 0 rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --shadow-lg:  0 12px 16px -4px rgba(0,0,0,0.10), 0 4px 6px -2px rgba(0,0,0,0.06);
+  --shadow-xl:  0 20px 24px -4px rgba(0,0,0,0.10), 0 8px 8px -4px rgba(0,0,0,0.04);
+  --shadow-2xl: 0 24px 48px -12px rgba(0,0,0,0.18);
+
+  /* ─── Primitives — Breakpoints ─────────────────────────── */
+  --bp-mobile-s:    400px;
+  --bp-mobile:      600px;
+  --bp-tablet:      800px;
+  --bp-tablet-md:   1000px;
+  --bp-desktop:     1200px;
+  --bp-desktop-lg:  1440px;
+  --bp-desktop-xl:  1920px;
+  --bp-desktop-3xl: 2100px;   /* max */
+
+  /* ─── Primitives — Grid (per breakpoint) ───────────────── */
+  --grid-columns:       12;
+  --grid-max:           2100px;
+  --grid-cols-desktop:  12;
+  --grid-cols-tablet:   12;   /* same column count, narrower margins */
+  --grid-cols-mobile:   4;
+
+  /* gutters — gap between columns */
+  --grid-gutter-desktop: 24px;
+  --grid-gutter-tablet:  24px;
+  --grid-gutter-mobile:  16px;
+
+  /* outer page margin */
+  --grid-margin-desktop: 64px;
+  --grid-margin-tablet:  40px;
+  --grid-margin-mobile:  24px;
+
+  /* current — set by media queries below */
+  --grid-gutter:  var(--grid-gutter-desktop);
+  --grid-margin:  var(--grid-margin-desktop);
+
+  /* ─── Semantic — Section padding (per breakpoint) ──────── */
+  --section-pad-y-desktop: 128px;
+  --section-pad-y-tablet:  96px;
+  --section-pad-y-mobile:  64px;
+
+  --section-pad-x-desktop: 64px;
+  --section-pad-x-tablet:  40px;
+  --section-pad-x-mobile:  24px;
+
+  /* fluid versions for components that should scale smoothly */
+  --section-pad-y: var(--space-fluid-section);    /* 64→128 */
+  --section-pad-x: clamp(1.5rem, -0.4286rem + 5.1429cqi, 4rem); /* 24→64 */
+
+  /* ─── Semantic — Block / element gaps ──────────────────── */
+  --gap-xs:       var(--space-2);   /*  8 — tight inline */
+  --gap-sm:       var(--space-3);   /* 12 — chips, buttons */
+  --gap-md:       var(--space-5);   /* 24 — block-level */
+  --gap-lg:       var(--space-7);   /* 40 — between blocks */
+  --gap-xl:       var(--space-9);   /* 64 — between sections */
+  --gap-fluid:    var(--space-fluid-block);    /* 24→48 */
+  --gap-fluid-lg: var(--space-fluid-block-lg); /* 32→64 */
+
+  /* ─── Semantic — Radius by component shape ─────────────── */
+  --radius-button:   var(--radius-round);
+  --radius-input:    var(--radius-sm);
+  --radius-card-sm:  var(--radius-sm);
+  --radius-card-md:  var(--radius-md);
+  --radius-card-lg:  var(--radius-lg);
+  --radius-card-xl:  var(--radius-round);
+  --radius-modal:    var(--radius-md);
+
+  /* ─── Semantic — Elevation (Figma-named) ──────────────── */
+  --elev-xsmall:  var(--shadow-xs);
+  --elev-small:   var(--shadow-sm);
+  --elev-medium:  var(--shadow-md);
+  --elev-large:   var(--shadow-lg);
+  --elev-xlarge:  var(--shadow-xl);
+  --elev-xxlarge: var(--shadow-2xl);
+
+  /* ─── Semantic — Control sizing (buttons / pills / chips) ─ */
+  --control-h-sm:        32px;
+  --control-h-md:        40px;
+  --control-h-lg:        56px;
+  --control-h-xl:        64px;
+  --control-pad-x:       var(--space-6);     /* 32 */
+  --control-pad-x-sm:    var(--space-4);     /* 16 */
+  --control-pad-y:       var(--space-2);     /*  8 */
+  --control-gap:         var(--gap-xs);      /*  8 */
+
+  /* ─── Semantic — Icon sizing ─────────────────────────────── */
+  --icon-sm:             16px;
+  --icon-md:             24px;
+  --icon-lg:             32px;
+
+  /* ─── Semantic — Focus ring metrics ──────────────────────── */
+  --focus-ring-width:    2px;
+  --focus-ring-offset:   2px;
+  --focus-ring-offset-lg:4px;
+
+  /* ─── Semantic — Button (primary, animated) shape ────────── */
+  --button-primary-w-closed:     174px;
+  --button-primary-w-closed-sm:  151px;
+  --button-primary-w-open:       240px;
+  --button-primary-w-open-sm:    215px;
+  --button-primary-echo-w:       30px;
+  --button-primary-cres-sm:      4px;
+  --button-primary-cres-md:      8px;
+  --button-primary-cres-lg:      16px;
+  --button-primary-cres-gap:     2px;
+
+  /* ─── Semantic — Modal shape ─────────────────────────────── */
+  --modal-w-sm:           352px;
+  --modal-w-md:           700px;
+  --modal-pad-x-sm:       var(--space-5);  /* 24 */
+  --modal-pad-y-sm:       var(--space-9);  /* 64 top/bottom intent — bottom uses 48 */
+  --modal-pad-top-sm:     var(--space-9);  /* 64 */
+  --modal-pad-bottom-sm:  var(--space-8);  /* 48 */
+  --modal-pad-x-md:       var(--space-8);  /* 48 */
+  --modal-pad-top-md:     var(--space-10); /* 80 */
+  --modal-pad-bottom-md:  var(--space-8);  /* 48 */
+  --modal-gap:            var(--space-5);  /* 24 between blocks */
+  --modal-title-gap:      var(--space-3);  /* 12 between tagline and title */
+  --modal-close-offset:   var(--space-5);  /* 24 from edges */
+  --modal-scrollbar-w:    4px;
+  --modal-scrollbar-h:    80px;
+  --modal-image-ratio:    604 / 340;
+
+  /* ─── Semantic — Hero shape ──────────────────────────────
+   * Hero block height matches Figma /HP-Hero across the three
+   * sizes: XL 1024 · MD 800 · XS 700. Fluid value scales smoothly
+   * between the mobile and desktop bounds; the per-breakpoint
+   * primitives stay available for static layouts.
+   * ──────────────────────────────────────────────────────── */
+  --hero-h-desktop:      1024px;
+  --hero-h-tablet:       800px;
+  --hero-h-mobile:       700px;
+  --hero-h:              clamp(43.75rem, 21.4286rem + 59.5238cqi, 64rem); /* 700→1024 */
+  --hero-pad-y:          var(--space-fluid-section);   /* 64→128 */
+  --hero-content-max:    1280px;
+  --hero-stagger-shift:  clamp(1.5rem, -2.5rem + 10.6667cqi, 7.5rem); /* 24→120 */
+  --hero-stagger-gap:    clamp(0.25rem, -0.6429rem + 2.381cqi, 1.5rem); /* 4→24 */
+
+  /* ─── Semantic — LP Hero shape ───────────────────────────
+   * Landing-page hero: two-column, bottom-anchored editorial.
+   * Per Figma /LP-Hero — sizes XL 1024 · MD 1024 · XS 700.
+   * Inner container has an 8px radius; padding is generous and
+   * scales by breakpoint. Heading type is display-m (92px); the
+   * description column is held to ~440px so it never out-runs
+   * the heading visually.
+   * ──────────────────────────────────────────────────────── */
+  --lp-hero-h-desktop:        1024px;
+  --lp-hero-h-tablet:         900px;
+  --lp-hero-h-mobile:         700px;
+  --lp-hero-h:                clamp(43.75rem, 24rem + 52.6667cqi, 64rem); /* 700→1024 */
+  --lp-hero-radius:           var(--radius-sm);          /* 8px */
+  --lp-hero-pad-x-desktop:    var(--space-7);            /* 40 */
+  --lp-hero-pad-x-tablet:     var(--space-7);            /* 40 */
+  --lp-hero-pad-x-mobile:     var(--space-5);            /* 24 */
+  --lp-hero-pad-y-desktop:    var(--space-10);           /* 80 */
+  --lp-hero-pad-y-tablet:     var(--space-9);            /* 64 */
+  --lp-hero-pad-y-mobile:     var(--space-8);            /* 48 */
+  --lp-hero-inner-pad-x:      var(--space-9);            /* 64 — container inset on desktop */
+  --lp-hero-inner-pad-x-md:   var(--space-0);            /*  0 — collapses on tablet */
+  --lp-hero-inner-pad-x-sm:   var(--space-0);            /*  0 — collapses on mobile */
+  --lp-hero-col-gap:          clamp(2rem, -1rem + 6.6667cqi, 7rem); /* 32→112 */
+  --lp-hero-row-gap:          var(--space-5);            /* 24 — heading↔desc on stack */
+  --lp-hero-meta-gap:         var(--space-5);            /* 24 — tagline↔heading */
+  --lp-hero-desc-max:         28rem;                     /* 448px — description column cap */
+  --lp-hero-heading-max:      45rem;                     /* 720px — heading column cap */
+
+  /* ─── Semantic — Chip shape ──────────────────────────────
+   * Inline mono-tagline pill used in card headers and meta
+   * rows (e.g. press-release source label). Distinct from
+   * Button — narrower padding, fixed pill height.
+   * ──────────────────────────────────────────────────────── */
+  --chip-h:              var(--control-h-sm);     /* 32 */
+  --chip-pad-x:          var(--space-4);          /* 16 */
+  --chip-pad-y:          var(--space-2);          /*  8 */
+
+  /* ─── Semantic — Job-board (Greenhouse-styled) shape ───── */
+  --jobboard-alert-pad:        var(--space-5);    /* 24 */
+  --jobboard-alert-radius:     var(--radius-card-md);
+  --jobboard-input-h:          46px;
+  --jobboard-input-pad-x:      var(--space-4);    /* 16 */
+  --jobboard-row-pad-y:        var(--space-4);    /* 16 */
+  --jobboard-section-gap:      var(--space-6);    /* 32 */
+  --jobboard-listing-gap:      var(--space-4);    /* 16 */
+
+  /* ─── Semantic — Media carousel shape ─────────────────── */
+  /* Heading column width matches one card so the rhythm reads as
+   * a 4-up grid where slot one is the heading. Arrows are bare
+   * line glyphs (no chip), aligned to the same column. */
+  --carousel-card-w:           320px;             /* one portrait card */
+  --carousel-card-w-md:        268px;             /* tablet/mobile card */
+  --carousel-arrow-size:       24px;              /* glyph size */
+  --carousel-arrow-gap:        var(--space-5);    /* 24 between arrows */
+  --carousel-col-gap:          var(--space-5);    /* 24 between cards */
+  --carousel-track-gap:        var(--space-5);    /* 24 between portraits */
+  --carousel-info-w:           var(--carousel-card-w);
+  --carousel-pad-y:            var(--space-9);    /* 64 vertical */
+  --carousel-pad-x:            var(--space-9);    /* 64 horizontal desktop */
+  --carousel-pad-x-md:         var(--space-5);    /* 24 horizontal tablet/mobile */
+
+  /* ─── Semantic — Audio player shape ──────────────────────── */
+  --audio-pill-h:        var(--control-h-xl);
+  --audio-pill-pad-x:    var(--space-4);
+  --audio-pill-pad-y:    var(--space-2);
+  --audio-bar-w:         2px;
+  --audio-bar-gap:       var(--space-1);
+  --audio-wave-h:        var(--icon-lg);
+
+  /* ─── Semantic — Footer shape ───────────────────────────
+   * Site footer organism. Inner content max-width matches the
+   * 1440px page lockup (Figma /Footer XL). Per-breakpoint
+   * vertical rhythm: a generous brand→columns gap (64) and a
+   * larger columns→rule gap (80) on desktop, both compress on
+   * mobile. The "pathways" sunset band has its own min-height
+   * scale (XL 500 · MD 420 · XS 360 per Figma).
+   * ──────────────────────────────────────────────────────── */
+  --footer-max-w:                  1440px;
+  --footer-pad-x-desktop:          var(--space-7);   /* 40 */
+  --footer-pad-x-tablet:           var(--space-7);   /* 40 */
+  --footer-pad-x-mobile:           var(--space-5);   /* 24 */
+  --footer-pad-x:                  var(--footer-pad-x-desktop);
+  --footer-pad-y-top:              var(--space-7);   /* 40 — brand → top inner pad */
+  --footer-pad-y-top-mobile:       var(--space-6);   /* 32 */
+  --footer-gap-brand-cols:         var(--space-9);   /* 64 — brand row → columns */
+  --footer-gap-brand-cols-mobile:  var(--space-6);   /* 32 */
+  --footer-gap-cols-rule:          var(--space-10);  /* 80 — columns → divider */
+  --footer-gap-cols-rule-tablet:   var(--space-8);   /* 56 */
+  --footer-gap-cols-rule-mobile:   var(--space-2);   /* 8  — accordion compresses */
+  --footer-gap-bottom-y:           var(--space-5);   /* 24 — bottom bar pad */
+  --footer-gap-bottom-y-mobile:    var(--space-4);   /* 20 */
+  --footer-bottom-row-gap:         var(--space-6);   /* 32 */
+  --footer-bottom-row-gap-mobile:  var(--space-4);   /* 16 */
+  --footer-col-gap:                var(--space-5);   /* 24 */
+  --footer-col-stack-gap:          var(--space-6);   /* 32 */
+  --footer-link-list-gap:          var(--space-2);   /* 8  */
+  --footer-col-title-gap:          var(--space-4);   /* 16 — title → list */
+  --footer-logo-w-desktop:         240px;
+  --footer-logo-w-mobile:          200px;
+
+  --footer-social-d:               32px;             /* social pill diameter */
+  --footer-social-icon:            14px;
+  --footer-social-gap:             var(--space-2);   /* 8 */
+
+  --footer-citations-pad-y:        var(--space-8);   /* 48 */
+  --footer-citations-pad-y-mobile: var(--space-6);   /* 32 */
+  --footer-citations-gap:          var(--space-5);   /* 24 */
+  --footer-citations-list-gap:     var(--space-1);   /* 4  - between items, tight */
+  --footer-citations-num-w:        var(--space-7);   /* 28 */
+
+  --footer-accordion-h:            var(--control-h-lg); /* 56 */
+
+  /* ─── Semantic — Nav shape ──────────────────────────────
+   * The site nav is a single floating "pill" that morphs into
+   * a panel on open. Closed it's a 304×64 capsule centered at
+   * the top of the viewport; open it expands to 800×488 (XL)
+   * or fills the viewport width with a 484-tall column (MD).
+   * A small "tail" scallop drops below the panel housing the
+   * social row.
+   * ──────────────────────────────────────────────────────── */
+  --nav-top-offset:           var(--space-4);   /* 16 — gap from viewport top */
+  --nav-top-offset-mobile:    var(--space-3);   /* 12 */
+
+  --nav-pill-w:               304px;
+  --nav-pill-h:               64px;
+  --nav-pill-radius:          calc(var(--nav-pill-h) / 2); /* 32 — full capsule */
+  --nav-pill-pad-x:           var(--space-3);    /* 12 */
+  --nav-pill-pad-x-end:       var(--space-2);    /* 8  — closer hug for icon button */
+  --nav-pill-gap:             var(--space-3);    /* 12 */
+  --nav-pill-current-pad-x:   var(--space-5);    /* 24 — when label replaces logo */
+
+  --nav-panel-w:              800px;
+  --nav-panel-h:              488px;
+  --nav-panel-radius:         32px;
+  --nav-panel-pad:            var(--space-7);    /* 40 */
+  --nav-panel-pad-mobile:     var(--space-5);    /* 24 */
+
+  --nav-panel-h-mobile:       calc(100dvh - calc(var(--nav-top-offset-mobile) * 2));
+
+  --nav-tail-h:               41px;
+  --nav-tail-radius:          0 0 28px 28px;
+
+  --nav-link-h:               48px;       /* primary link row */
+  --nav-link-gap:             var(--space-1);   /* 4 between rows */
+  --nav-rule-pad-y:           var(--space-5);   /* 24 above/below the rule */
+
+  --nav-icon-btn:             48px;       /* hit target for hamburger / close */
+  --nav-icon-btn-r:           24px;
+
+  /* ─── Semantic — Nav motion ─────────────────────────────
+   * Pill → panel is a single coordinated morph: width, height
+   * and radius all transition together; inner content cross-
+   * fades on a slight delay so it doesn't pop before the
+   * surface has space.
+   * ──────────────────────────────────────────────────────── */
+  --nav-morph-dur:            420ms;
+  --nav-morph-ease:           cubic-bezier(0.22, 1, 0.36, 1);   /* easeOutQuint-ish */
+  --nav-content-dur:          280ms;
+  --nav-content-delay-in:     180ms;     /* wait for surface to expand */
+  --nav-content-delay-out:    0ms;
+  --nav-tail-delay-in:        260ms;
+  --nav-icon-dur:             200ms;
+}
+
+@media (max-width: 799px) {
+  :root {
+    --grid-columns: 4;
+  }
+}
+
+/* ─── Per-breakpoint variable swaps ─────────────────────────
+ * Re-bind --grid-gutter, --grid-margin, and --section-pad-* so
+ * components reading the un-suffixed names get the right value
+ * without each component writing its own media queries.
+ * ────────────────────────────────────────────────────────── */
+
+@container pg-root (max-width: 768px) {
+  :where(*) {
+    --grid-gutter:    var(--grid-gutter-mobile);
+    --grid-margin:    var(--grid-margin-mobile);
+    --section-pad-y:  var(--section-pad-y-mobile);
+    --section-pad-x:  var(--section-pad-x-mobile);
+    --footer-pad-x:   var(--footer-pad-x-mobile);
+  }
+}
+
+@container pg-root (min-width: 800px) and (max-width: 1199px) {
+  :where(*) {
+    --grid-gutter:    var(--grid-gutter-tablet);
+    --grid-margin:    var(--grid-margin-tablet);
+    --section-pad-y:  var(--section-pad-y-tablet);
+    --section-pad-x:  var(--section-pad-x-tablet);
+    --footer-pad-x:   var(--footer-pad-x-tablet);
+  }
+}
+
+@container pg-root (min-width: 1200px) {
+  :where(*) {
+    --grid-gutter:    var(--grid-gutter-desktop);
+    --grid-margin:    var(--grid-margin-desktop);
+    --section-pad-y:  var(--section-pad-y-desktop);
+    --section-pad-x:  var(--section-pad-x-desktop);
+  }
+}

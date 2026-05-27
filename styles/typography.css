@@ -1,0 +1,240 @@
+/* Typography Tokens
+ *
+ * Single typeface system: NB International Pro for everything,
+ * NB International Pro Mono for taglines + small UI labels.
+ *
+ * Three breakpoints — Mobile, Tablet, Desktop — with explicit
+ * per-breakpoint sizes AND fluid clamp() values that interpolate
+ * between Mobile@600px and Desktop@1440px.
+ *
+ *   Mobile  ≤ 600px   (clamp lower bound)
+ *   Tablet    800–1000px
+ *   Desktop ≥ 1440px  (clamp upper bound)
+ *
+ * Source: Figma /Typography page.
+ */
+
+:root {
+  /* ─── Primitives — Family ──────────────────────────────── */
+  --font-sans:  "NB International Pro", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono:  "NB International Pro Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ─── Primitives — Weight ──────────────────────────────── */
+  --fw-light:    300;
+  --fw-book:     380;
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-bold:     700;
+
+  /* ─── Primitives — Static size scale (rem) ─────────────── */
+  --fs-12:   0.75rem;    /* 12  legal */
+  --fs-14:   0.875rem;   /* 14  small / tagline-S */
+  --fs-16:   1rem;       /* 16  body / tagline-L */
+  --fs-18:   1.125rem;   /* 18  body-medium / h6-mobile */
+  --fs-22:   1.375rem;   /* 22  h6 / h5-mobile */
+  --fs-26:   1.625rem;   /* 26  h5-tablet */
+  --fs-28:   1.75rem;    /* 28  h5 / h4-mobile */
+  --fs-32:   2rem;       /* 32  h4-tablet / h3-mobile */
+  --fs-36:   2.25rem;    /* 36  h4 */
+  --fs-38:   2.375rem;   /* 38  h3-tablet */
+  --fs-40:   2.5rem;     /* 40  h2-mobile */
+  --fs-44:   2.75rem;    /* 44  h3 / h1-mobile */
+  --fs-46:   2.875rem;   /* 46  h2-tablet */
+  --fs-52:   3.25rem;    /* 52  h2 */
+  --fs-58:   3.625rem;   /* 58  h1-tablet */
+  --fs-66:   4.125rem;   /* 66  display-s-tablet */
+  --fs-72:   4.5rem;     /* 72  h1 */
+  --fs-88:   5.5rem;     /* 88  display-s */
+  --fs-92:   5.75rem;    /* 92  display-m */
+  --fs-100:  6.25rem;    /* 100 display-2-mobile */
+  --fs-110:  6.875rem;   /* 110 display-2-tablet */
+  --fs-120:  7.5rem;     /* 120 display-2 */
+
+  /* ─── Primitives — Fluid sizes (Mobile→Desktop, lock 600/1440) ─── */
+  --fs-display-2-fluid: clamp(6.25rem,  5.3571rem + 2.381cqi,  7.5rem);  /* 100→120 */
+  --fs-display-m-fluid: clamp(2.75rem,  0.6071rem + 5.7143cqi, 5.75rem); /*  44→92  */
+  --fs-display-s-fluid: clamp(2.75rem,  0.7857rem + 5.2381cqi, 5.5rem);  /*  44→88  */
+  --fs-h1-fluid:        clamp(2.75rem,  1.5rem + 3.3333cqi,    4.5rem);  /*  44→72  */
+  --fs-h2-fluid:        clamp(2.5rem,   1.9643rem + 1.4286cqi, 3.25rem); /*  40→52  */
+  --fs-h3-fluid:        clamp(2rem,     1.4643rem + 1.4286cqi, 2.75rem); /*  32→44  */
+  --fs-h4-fluid:        clamp(1.75rem,  1.3929rem + 0.9524cqi, 2.25rem); /*  28→36  */
+  --fs-h5-fluid:        clamp(1.375rem, 1.1071rem + 0.7143cqi, 1.75rem); /*  22→28  */
+  --fs-h6-fluid:        clamp(1.125rem, 0.9464rem + 0.4762cqi, 1.375rem); /* 18→22  */
+
+  /* ─── Primitives — Line-height ─────────────────────────── */
+  --lh-tight:    0.95;     /* display + h1–h4 */
+  --lh-snug:     1.10;     /* h5, taglines, supporting */
+  --lh-normal:   1.20;     /* h6 + body */
+  --lh-flat:     1.00;     /* mono labels */
+  --lh-loose:    1.50;     /* body-xs, legal */
+
+  /* ─── Primitives — Letter-spacing ──────────────────────── */
+  --ls-tightest: -0.03em;  /* display, h1 */
+  --ls-tighter:  -0.02em;  /* h5, large heading variants */
+  --ls-tight:    -0.01em;  /* h2–h4 */
+  --ls-normal:   0;
+  --ls-wide:     0.05em;   /* mono taglines */
+
+  /* ──────────────────────────────────────────────────────── */
+  /* SEMANTIC — Default to FLUID values so size scales smoothly */
+  /* between Mobile and Desktop. Per-breakpoint overrides below */
+  /* lock specific px sizes inside Tablet and Mobile ranges.    */
+  /* ──────────────────────────────────────────────────────── */
+
+  --type-display-2:   var(--fw-regular)  var(--fs-display-2-fluid)/var(--lh-flat)  var(--font-sans);
+  --type-display-m:   var(--fw-regular)  var(--fs-display-m-fluid)/var(--lh-tight) var(--font-sans);
+  --type-display-s:   var(--fw-regular)  var(--fs-display-s-fluid)/var(--lh-tight) var(--font-sans);
+  --type-h1:          var(--fw-regular)  var(--fs-h1-fluid)/var(--lh-tight)        var(--font-sans);
+  --type-h2:          var(--fw-regular)  var(--fs-h2-fluid)/var(--lh-tight)        var(--font-sans);
+  --type-h3:          var(--fw-regular)  var(--fs-h3-fluid)/var(--lh-tight)        var(--font-sans);
+  --type-h4:          var(--fw-regular) var(--fs-h4-fluid)/var(--lh-tight)        var(--font-sans);
+  --type-h5:          var(--fw-regular) var(--fs-h5-fluid)/var(--lh-snug)         var(--font-sans);
+  --type-h6:          var(--fw-regular) var(--fs-h6-fluid)/var(--lh-normal)       var(--font-sans);
+
+  /* tracking is set per-class because `font` shorthand can't carry letter-spacing */
+  --tracking-display: var(--ls-tightest);
+  --tracking-h1:      var(--ls-tightest);
+  --tracking-h2:      var(--ls-tight);
+  --tracking-h3:      var(--ls-tight);
+  --tracking-h4:      var(--ls-tight);
+  --tracking-h5:      var(--ls-tighter);
+  --tracking-h6:      var(--ls-normal);
+
+  /* ─── Semantic — Body (size constant across breakpoints) ── */
+  --type-text-medium: var(--fw-regular) var(--fs-18)/var(--lh-normal) var(--font-sans);
+  --type-text-base:   var(--fw-regular) var(--fs-16)/var(--lh-normal) var(--font-sans);
+  --type-text-small:  var(--fw-regular) var(--fs-14)/var(--lh-loose) var(--font-sans);
+  --type-text-legal:  var(--fw-regular) var(--fs-12)/var(--lh-loose) var(--font-sans);
+
+  /* ─── Semantic — Tagline (mono, all-caps suggested) ─────── */
+  --type-tagline-l:   var(--fw-regular) var(--fs-16)/var(--lh-snug) var(--font-mono);
+  --type-tagline-s:   var(--fw-regular) var(--fs-14)/var(--lh-snug) var(--font-mono);
+
+  /* ─── Named fluid text scale (Mobile@375px → Desktop@1440px) ─
+   * Use these tokens for font-size in components. Values are
+   * generated from the design system fluid-type spec.
+   * ──────────────────────────────────────────────────────────── */
+  --text-display-lg: clamp(4rem, calc(5.18cqi + 0.705rem), 9.4375rem);
+  --text-display-md: clamp(2.75rem, calc(4.83cqi + 0.538rem), 7.9375rem);
+  --text-display-sm: clamp(2.75rem, calc(4.65cqi + 0.587rem), 7.6875rem);
+  --text-heading-1:  clamp(2.75rem, calc(2.88cqi + 2.029rem), 5.8125rem);
+  --text-heading-2:  clamp(2.5rem, calc(1.65cqi + 1.888rem), 4.25rem);
+  --text-heading-3:  clamp(2rem, calc(1.65cqi + 1.388rem), 3.75rem);
+  --text-heading-4:  clamp(1.5rem, calc(1.36cqi + 0.969rem), 2.9375rem);
+  --text-heading-5:  clamp(1.25rem, calc(0.94cqi + 0.886rem), 2.25rem);
+  --text-heading-6:  clamp(1.125rem, calc(0.54cqi + 0.931rem), 1.6875rem);
+  --text-body-xl:    clamp(1.375rem, calc(0.94cqi + 1.011rem), 2.25rem);
+  --text-body-lg:    clamp(1.125rem, calc(0.54cqi + 0.931rem), 1.6875rem);
+  --text-body-md:    clamp(1rem, calc(0.3cqi + 0.888rem), 1.3125rem);
+  --text-body-sm:    1rem;
+  --text-body-xs:    0.875rem;
+  --text-eyebrow:    0.875rem;
+  --text-legal:      0.75rem;
+
+  /* Display "number" — large numerals (e.g. milestone years).
+   * Figma token: text-sizes/number, anchored at 140px on the 1440px target.
+   * Fluid range: 60px (XS, 400px) → 140px (XL, 1440px) → 196px (3XL, 2099px). */
+  --text-number:     clamp(3.75rem, calc(8.01cqi + 1.75rem), 12.25rem);
+}
+
+/* ─── Element defaults ──────────────────────────────────── */
+html { font-family: var(--font-sans); color: var(--color-fg); }
+
+h1, .cp-h1 { font: var(--type-h1); letter-spacing: var(--tracking-h1); margin: 0; }
+h2, .cp-h2 { font: var(--type-h2); letter-spacing: var(--tracking-h2); margin: 0; }
+h3, .cp-h3 { font: var(--type-h3); letter-spacing: var(--tracking-h3); margin: 0; }
+h4, .cp-h4 { font: var(--type-h4); letter-spacing: var(--tracking-h4); margin: 0; }
+h5, .cp-h5 { font: var(--type-h5); letter-spacing: var(--tracking-h5); margin: 0; }
+h6, .cp-h6 { font: var(--type-h6); letter-spacing: var(--tracking-h6); margin: 0; }
+
+.cp-display-m { font: var(--type-display-m); letter-spacing: var(--tracking-display); margin: 0; }
+.cp-display-s { font: var(--type-display-s); letter-spacing: var(--tracking-display); margin: 0; }
+.cp-display-2 { font: var(--type-display-2); letter-spacing: var(--tracking-display); margin: 0; }
+
+p, .cp-text     { font: var(--type-text-base); margin: 0; }
+.cp-text-medium { font: var(--type-text-medium); }
+.cp-text-small  { font: var(--type-text-small); }
+.cp-text-legal  { font: var(--type-text-legal); }
+
+.cp-tagline-l   { font: var(--type-tagline-l); letter-spacing: var(--ls-wide); text-transform: uppercase; }
+.cp-tagline-s   { font: var(--type-tagline-s); letter-spacing: var(--ls-wide); text-transform: uppercase; }
+
+/* ─── Product / UI chrome heading scale ─────────────────────
+ * Apply .pg-chrome to any product-UI wrapper to:
+ *   1. Override all --text-* tokens with fixed rem values so no
+ *      cqi fluid scaling occurs in the playground shell.
+ *   2. Downscale h1–h6 elements from marketing scale to product scale.
+ *
+ * DO NOT put pg-chrome on the component viewport wrapper — built
+ * components use the fluid --text-* tokens intentionally.
+ * ─────────────────────────────────────────────────────────── */
+.pg-chrome {
+  /* Fixed-size overrides for all named text tokens.
+   * Values are the 1440px desktop targets from the fluid spec. */
+  --text-display-lg: 5.5rem;
+  --text-display-md: 4.875rem;
+  --text-display-sm: 4.75rem;
+  --text-heading-1:  4.5rem;
+  --text-heading-2:  3.25rem;
+  --text-heading-3:  2.75rem;
+  --text-heading-4:  2.25rem;
+  --text-heading-5:  1.75rem;
+  --text-heading-6:  1.375rem;
+  --text-body-xl:    1.875rem;
+  --text-body-lg:    1.375rem;
+  --text-body-md:    1.125rem;
+  --text-body-sm:    1rem;
+  --text-body-xs:    0.875rem;
+  --text-eyebrow:    0.875rem;
+  --text-legal:      0.75rem;
+  --text-number:     8.75rem;
+
+  /* Also freeze the lower-level fluid primitives used by --type-h* */
+  --fs-display-2-fluid: var(--fs-120);
+  --fs-display-m-fluid: var(--fs-92);
+  --fs-display-s-fluid: var(--fs-88);
+  --fs-h1-fluid:        var(--fs-72);
+  --fs-h2-fluid:        var(--fs-52);
+  --fs-h3-fluid:        var(--fs-44);
+  --fs-h4-fluid:        var(--fs-36);
+  --fs-h5-fluid:        var(--fs-28);
+  --fs-h6-fluid:        var(--fs-22);
+}
+
+.pg-chrome h1, .pg-chrome .cp-h1 { font-size: 1.25rem;   font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+.pg-chrome h2, .pg-chrome .cp-h2 { font-size: 1.125rem;  font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+.pg-chrome h3, .pg-chrome .cp-h3 { font-size: 1rem;      font-weight: 500; line-height: 1.3; letter-spacing: 0; }
+.pg-chrome h4, .pg-chrome .cp-h4 { font-size: 0.875rem;  font-weight: 500; line-height: 1.3; letter-spacing: 0; }
+.pg-chrome h5, .pg-chrome .cp-h5 { font-size: 0.8125rem; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+.pg-chrome h6, .pg-chrome .cp-h6 { font-size: 0.75rem;   font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+
+/* ─────────────────────────────────────────────────────────── */
+/* Per-breakpoint static overrides                              */
+/* Use these classes (or @media query below) when you want      */
+/* discrete sizes instead of fluid scaling.                     */
+/* ─────────────────────────────────────────────────────────── */
+
+/* TABLET — 800–1000px (midpoint between mobile + desktop) */
+@container pg-root (min-width: 800px) and (max-width: 1199px) {
+  h1, .cp-h1 { font: var(--fw-regular)  var(--fs-58)/var(--lh-tight)  var(--font-sans); }
+  h2, .cp-h2 { font: var(--fw-regular)  var(--fs-46)/var(--lh-tight)  var(--font-sans); }
+  h3, .cp-h3 { font: var(--fw-regular)  var(--fs-38)/var(--lh-tight)  var(--font-sans); }
+  h4, .cp-h4 { font: var(--fw-regular) var(--fs-32)/var(--lh-tight)  var(--font-sans); }
+  h5, .cp-h5 { font: var(--fw-regular) var(--fs-26)/var(--lh-snug)   var(--font-sans); }
+  h6, .cp-h6 { font: var(--fw-regular) var(--fs-22)/var(--lh-normal) var(--font-sans); }
+  .cp-display-m { font: var(--fw-light) var(--fs-72)/var(--lh-tight) var(--font-sans); }
+  .cp-display-s { font: var(--fw-light) var(--fs-66)/var(--lh-tight) var(--font-sans); }
+  .cp-display-2 { font: var(--fw-light) var(--fs-110)/var(--lh-flat) var(--font-sans); }
+}
+
+/* MOBILE — ≤ 768px */
+@container pg-root (max-width: 768px) {
+  h1, .cp-h1 { font: var(--fw-regular)  var(--fs-44)/var(--lh-tight)  var(--font-sans); }
+  h2, .cp-h2 { font: var(--fw-regular)  var(--fs-40)/var(--lh-tight)  var(--font-sans); }
+  h3, .cp-h3 { font: var(--fw-regular)  var(--fs-32)/var(--lh-tight)  var(--font-sans); }
+  h4, .cp-h4 { font: var(--fw-regular)  var(--fs-28)/var(--lh-tight)  var(--font-sans); }
+  h5, .cp-h5 { font: var(--fw-regular)  var(--fs-22)/var(--lh-snug)   var(--font-sans); }
+  h6, .cp-h6 { font: var(--fw-regular)  var(--fs-18)/var(--lh-normal) var(--font-sans); }
+  .cp-display-m, .cp-display-s { font: var(--fw-regular) var(--fs-44)/var(--lh-tight) var(--font-sans); }
+  .cp-display-2               { font: var(--fw-regular) var(--fs-100)/var(--lh-flat) var(--font-sans); }
+}

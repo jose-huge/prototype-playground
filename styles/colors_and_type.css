@@ -1,0 +1,22 @@
+/* Combined entrypoint.
+ * Imports fonts + colors + typography + spacing primitives & semantics.
+ * Pages can either load this single file or pick individual sheets.
+ */
+@import url("./fonts.css");
+@import url("./colors.css");
+@import url("./typography.css");
+@import url("./spacing.css");
+@import url("./motion.css");
+@import url("./responsive-root.css");
+
+/* Sane resets for design-system pages */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: var(--type-text-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+img, svg { display: block; max-width: 100%; }
