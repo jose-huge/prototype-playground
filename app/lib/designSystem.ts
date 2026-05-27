@@ -498,7 +498,55 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
   };
 }
 
-// ── CSS generator ──────────────────────────────────────────────────────────────
+// ── CSS generators ─────────────────────────────────────────────────────────────
+
+/**
+ * Generate styles/schemes.css from the imported SchemeEntry array.
+ *
+ * Each Figma variable-collection mode becomes a [data-scheme="<name>"] block.
+ * The data-scheme value is the normalised mode name (lowercase, hyphenated) so
+ * it matches the SCHEME_NAMES list used by SchemeProvider and the scheme picker.
+ *
+ * Example output:
+ *   [data-scheme="sage-light"] {
+ *     --background: #dff5dc;
+ *     --foreground: #323a31;
+ *     ...
+ *   }
+ */
+export function generateSchemesCss(snapshot: TokenSnapshot): string {
+  const { meta, schemes } = snapshot;
+  if (!schemes?.length) {
+    return [
+      `/* Color schemes — no scheme collections found in Figma file. */`,
+      `/* Import a Figma file that contains a variable collection with multiple modes. */`,
+      ``,
+    ].join("\n");
+  }
+
+  const date = new Date(meta.importedAt).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
+  const lines: string[] = [
+    `/* Color schemes — generated from Figma: ${meta.figmaFile} */`,
+    `/* Imported: ${date} */`,
+    `/* Do not edit manually — regenerated on every Figma import. */`,
+    ``,
+  ];
+
+  for (const scheme of schemes) {
+    const dataScheme = normalizeName(scheme.name);
+    lines.push(`[data-scheme="${dataScheme}"] {`);
+    for (const token of scheme.tokens) {
+      lines.push(`  ${token.cssVar}: ${token.value};`);
+    }
+    lines.push(`}`);
+    lines.push(``);
+  }
+
+  return lines.join("\n");
+}
 
 export function generateTokensCss(snapshot: TokenSnapshot): string {
   const { meta, tokens } = snapshot;

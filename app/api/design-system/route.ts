@@ -15,6 +15,7 @@ import path                from "path";
 import {
   processTokens,
   generateTokensCss,
+  generateSchemesCss,
   generateDesignMd,
   processStyleNode,
   type FigmaVariablesResponse,
@@ -31,6 +32,7 @@ const CWD          = process.cwd();
 const CONFIG_PATH  = path.join(CWD, ".figma-config.json");
 const DOCS_DIR     = path.join(CWD, "docs");
 const TOKENS_CSS   = path.join(CWD, "styles", "generated-tokens.css");
+const SCHEMES_CSS  = path.join(CWD, "styles", "schemes.css");
 const DESIGN_MD    = path.join(DOCS_DIR, "design.md");
 const TOKENS_JSON  = path.join(DOCS_DIR, "tokens.json");
 const IMPORT_META  = path.join(DOCS_DIR, "import-meta.json");
@@ -132,6 +134,7 @@ export async function POST() {
     "Fetched styles",
     "Processing tokens",
     "Generating tokens.css",
+    "Generating schemes.css",
     "Generating design.md",
     "Building reference page",
   ];
@@ -264,21 +267,34 @@ export async function POST() {
           return;
         }
 
-        // ── Step 6: Write design.md ──────────────────────────────────────────
+        // ── Step 6: Write schemes.css ─────────────────────────────────────────
         emit(5, "running");
         try {
-          ensureDir(DOCS_DIR);
-          const md = generateDesignMd(snapshot);
-          fs.writeFileSync(DESIGN_MD, md, "utf8");
-          emit(5, "done", "docs/design.md");
+          const schemesCss = generateSchemesCss(snapshot);
+          fs.writeFileSync(SCHEMES_CSS, schemesCss, "utf8");
+          const schemeCount = snapshot.schemes?.length ?? 0;
+          emit(5, "done", `styles/schemes.css (${schemeCount} scheme${schemeCount !== 1 ? "s" : ""})`);
         } catch (err) {
           emit(5, "error", undefined, err instanceof Error ? err.message : "Write failed");
           controller.close();
           return;
         }
 
-        // ── Step 7: Write tokens.json ────────────────────────────────────────
+        // ── Step 7: Write design.md ──────────────────────────────────────────
         emit(6, "running");
+        try {
+          ensureDir(DOCS_DIR);
+          const md = generateDesignMd(snapshot);
+          fs.writeFileSync(DESIGN_MD, md, "utf8");
+          emit(6, "done", "docs/design.md");
+        } catch (err) {
+          emit(6, "error", undefined, err instanceof Error ? err.message : "Write failed");
+          controller.close();
+          return;
+        }
+
+        // ── Step 8: Write tokens.json ────────────────────────────────────────
+        emit(7, "running");
         try {
           ensureDir(DOCS_DIR);
           fs.writeFileSync(TOKENS_JSON, JSON.stringify(snapshot, null, 2), "utf8");
@@ -288,9 +304,9 @@ export async function POST() {
             JSON.stringify({ importedAt: snapshot.meta.importedAt }),
             "utf8"
           );
-          emit(6, "done", "docs/tokens.json");
+          emit(7, "done", "docs/tokens.json");
         } catch (err) {
-          emit(6, "error", undefined, err instanceof Error ? err.message : "Write failed");
+          emit(7, "error", undefined, err instanceof Error ? err.message : "Write failed");
           controller.close();
           return;
         }

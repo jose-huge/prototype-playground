@@ -1,4 +1,116 @@
-/* Color schemes — populated when a design system is imported from Figma.
- * Each named scheme maps to a data-scheme attribute on section elements.
- * Do not edit manually.
+/* Color schemes — seed defaults shipped with the blank repo.
+ * When a design system is imported from Figma the import pipeline may
+ * overwrite this file with generated per-scheme overrides. These defaults
+ * are derived from the palette tokens in generated-tokens.css.
+ *
+ * Usage: SchemeProvider (or any ancestor with data-scheme="<name>") causes
+ * these custom properties to cascade into all child components.
+ *
+ * Key semantic tokens per scheme
+ * ─────────────────────────────────────────────────────────────────────────
+ *   --background   Primary surface color for the scheme
+ *   --foreground   Primary text / icon color for the scheme
+ *   --border       Divider / stroke color for the scheme
+ *   --muted        Subtle fill (hover states, secondary surfaces)
+ *   --muted-foreground  De-emphasized text
+ * ─────────────────────────────────────────────────────────────────────────
  */
+
+/* ── white ─────────────────────────────────────────────────────────────────── */
+[data-scheme="white"] {
+  --background:          #ffffff;
+  --foreground:          var(--color-noir-darkest,  #000000);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-neutral-lightest, #f2f2f2);
+  --muted-foreground:    var(--color-neutral-dark,  #54504e);
+}
+
+/* ── harvest-light ─────────────────────────────────────────────────────────── */
+[data-scheme="harvest-light"] {
+  --background:          var(--color-harvest-lightest,  #faf6ef);
+  --foreground:          var(--color-harvest-darkest,   #3f331e);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-harvest-lighter,   #ffefd2);
+  --muted-foreground:    var(--color-harvest-dark,      #aa8a50);
+}
+
+/* ── harvest-dark ──────────────────────────────────────────────────────────── */
+[data-scheme="harvest-dark"] {
+  --background:          var(--color-harvest-darker,    #554528);
+  --foreground:          var(--color-harvest-lightest,  #faf6ef);
+  --border:              var(--opacity-white-15,        rgba(255, 255, 255, 0.15));
+  --muted:               var(--color-harvest-dark,      #aa8a50);
+  --muted-foreground:    var(--color-harvest-light,     #e1c593);
+}
+
+/* ── sage-light ────────────────────────────────────────────────────────────── */
+[data-scheme="sage-light"] {
+  --background:          var(--color-sage-light,        #dff5dc);
+  --foreground:          var(--color-sage-darkest,      #323a31);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-sage-lighter,      #edf2ed);
+  --muted-foreground:    var(--color-sage-dark,         #869b84);
+}
+
+/* ── sage-dark ─────────────────────────────────────────────────────────────── */
+[data-scheme="sage-dark"] {
+  --background:          var(--color-sage-darkest,      #323a31);
+  --foreground:          var(--color-sage-lightest,     #f6f8f6);
+  --border:              var(--opacity-white-15,        rgba(255, 255, 255, 0.15));
+  --muted:               var(--color-sage-darker,       #434d42);
+  --muted-foreground:    var(--color-sage,              #a8c2a5);
+}
+
+/* ── sky-light ─────────────────────────────────────────────────────────────── */
+[data-scheme="sky-light"] {
+  --background:          var(--color-sky-lightest,      #f5fafd);
+  --foreground:          var(--color-sky-darkest,       #303e48);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-sky-lighter,       #e4f4ff);
+  --muted-foreground:    var(--color-sky-dark,          #82a6c0);
+}
+
+/* ── sky-dark ──────────────────────────────────────────────────────────────── */
+[data-scheme="sky-dark"] {
+  --background:          var(--color-sky-darkest,       #303e48);
+  --foreground:          var(--color-sky-lightest,      #f5fafd);
+  --border:              var(--opacity-white-15,        rgba(255, 255, 255, 0.15));
+  --muted:               var(--color-sky-darker,        #415360);
+  --muted-foreground:    var(--color-sky,               #a3d0f1);
+}
+
+/* ── rose-light ────────────────────────────────────────────────────────────── */
+[data-scheme="rose-light"] {
+  --background:          var(--color-rose-lightest,     #fef3f0);
+  --foreground:          var(--color-rose-darkest,      #541515);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-rose-lighter,      #fdddd4);
+  --muted-foreground:    var(--color-rose-dark,         #b04c36);
+}
+
+/* ── rose-dark ─────────────────────────────────────────────────────────────── */
+[data-scheme="rose-dark"] {
+  --background:          var(--color-rose-darkest,      #541515);
+  --foreground:          var(--color-rose-lightest,     #fef3f0);
+  --border:              var(--opacity-white-15,        rgba(255, 255, 255, 0.15));
+  --muted:               var(--color-rose-darker,       #922828);
+  --muted-foreground:    var(--color-rose-light,        #febb9f);
+}
+
+/* ── noir-light ────────────────────────────────────────────────────────────── */
+[data-scheme="noir-light"] {
+  --background:          var(--color-noir-lightest,     #f5f5f5);
+  --foreground:          var(--color-noir-darkest,      #000000);
+  --border:              var(--opacity-neutral-darkest-10, rgba(11, 5, 3, 0.10));
+  --muted:               var(--color-noir-lighter,      #d3cfce);
+  --muted-foreground:    var(--color-noir,              #555555);
+}
+
+/* ── noir-dark ─────────────────────────────────────────────────────────────── */
+[data-scheme="noir-dark"] {
+  --background:          var(--color-noir-darkest,      #000000);
+  --foreground:          var(--color-noir-lightest,     #f5f5f5);
+  --border:              var(--opacity-white-15,        rgba(255, 255, 255, 0.15));
+  --muted:               var(--color-noir-darker,       #1a1a1a);
+  --muted-foreground:    var(--color-noir-light,        #8a8a8a);
+}
