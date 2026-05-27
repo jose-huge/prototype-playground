@@ -428,6 +428,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [schemeOverride, setSchemeOverride] = useState<SchemeName | undefined>(undefined);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [figmaConfigOpen, setFigmaConfigOpen] = useState(false);
+  const [isImportingDesignSystem, setIsImportingDesignSystem] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<SelectedFrame | null>(null);
   const [frameLoading,  setFrameLoading]  = useState(false);
   const [builtFrameIds, setBuiltFrameIds] = useState<Set<string>>(new Set());
@@ -1106,7 +1107,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               />
             </div>
           ) : localItem === "Design Variables" ? (
-            <DesignMdView />
+            <DesignMdView isImporting={isImportingDesignSystem} />
           ) : localItem === "figma-build" ? (
             <BuildPanel
               selection={selectedFrame}
@@ -1195,6 +1196,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
         open={figmaConfigOpen}
         onOpenChange={setFigmaConfigOpen}
         onConnected={() => {}}
+        onImportingChange={setIsImportingDesignSystem}
         builtCount={builtComponentsList.length}
       />
 

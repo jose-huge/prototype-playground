@@ -26,10 +26,11 @@ import DesignSystemImport from "./DesignSystemImport";
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface Props {
-  open:          boolean;
-  onOpenChange:  (open: boolean) => void;
-  onConnected?:  () => void;
-  builtCount?:   number;
+  open:               boolean;
+  onOpenChange:       (open: boolean) => void;
+  onConnected?:       () => void;
+  onImportingChange?: (importing: boolean) => void;
+  builtCount?:        number;
 }
 
 type ConnectStatus = "idle" | "connecting" | "success" | "error";
@@ -50,6 +51,7 @@ export default function FigmaConfigPanel({
   open,
   onOpenChange,
   onConnected,
+  onImportingChange,
   builtCount = 0,
 }: Props) {
   const { config, isConnected, saveConfig, clearConfig } = useFigmaConfig();
@@ -146,6 +148,7 @@ export default function FigmaConfigPanel({
     setView("importing");
     setSteps([]);
     setImporting(true);
+    onImportingChange?.(true);
     setImportDone(false);
     setFatalError(null);
 
@@ -200,6 +203,7 @@ export default function FigmaConfigPanel({
       setFatalError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setImporting(false);
+      onImportingChange?.(false);
       abortRef.current = null;
     }
   };
