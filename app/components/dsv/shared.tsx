@@ -4,6 +4,16 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import type { TokenEntry } from "@/app/lib/designSystem";
 
+/**
+ * Returns the last path segment of a Figma token name, lowercased and
+ * hyphenated — e.g. "Typography/Display/Display LG" → "display-lg".
+ * Use this as the default specimen / label text in any section.
+ */
+export function figmaLabel(token: TokenEntry): string {
+  const last = token.figmaName.split("/").pop() ?? token.figmaName;
+  return last.trim().toLowerCase().replace(/\s+/g, "-");
+}
+
 export function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
   return (

@@ -20,30 +20,25 @@ export function ShadowsSection({ tokens }: { tokens: TokenEntry[] }) {
   if (!tokens.length) return <p className="text-xs text-muted-foreground">No shadow tokens found.</p>;
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-row gap-6 flex-wrap">
       {sortShadows(tokens).map((t) => (
-        <div
-          key={t.cssVar}
-          className="flex items-center gap-4 px-3 rounded-md hover:bg-muted/40 group"
-        >
-          {/* Live shadow preview on a neutral stage */}
+        <div key={t.cssVar} className="flex flex-col items-start gap-3 group">
+          {/* Shadow preview card */}
           <div
-            className="shrink-0 w-28 flex items-center justify-center rounded-sm"
-            style={{ background: "#c8c8c8", padding: "28px 16px" }}
-          >
-            <div
-              className="w-14 h-14 rounded-xl bg-white"
-              style={{ boxShadow: t.valueLight }}
-            />
-          </div>
-          <div className="flex flex-col gap-0.5 min-w-0 flex-1 py-3">
-            <code className="font-mono text-xs text-foreground">{t.cssVar}</code>
-            <span className="text-xs text-muted-foreground">{t.figmaName}</span>
-            <code className="font-mono text-[11px] text-muted-foreground/70 truncate hidden lg:block">
-              {t.valueLight}
+            className="w-32 h-32 rounded-2xl bg-background"
+            style={{ boxShadow: t.valueLight }}
+          />
+          {/* CSS var + copy */}
+          <div className="flex items-center gap-1">
+            <code className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-foreground">
+              {t.cssVar}
             </code>
+            <CopyButton value={`var(${t.cssVar})`} />
           </div>
-          <CopyButton value={`var(${t.cssVar})`} />
+          {/* Value */}
+          <span className="text-xs text-muted-foreground leading-snug max-w-[8rem] break-words block">
+            {t.valueLight}
+          </span>
         </div>
       ))}
     </div>

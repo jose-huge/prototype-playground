@@ -236,7 +236,7 @@ export default function DesignMdView({ isImporting = false }: Props) {
           {/* Schemes */}
           <section ref={(el) => { sectionRefs.current["schemes"] = el; }} className="pb-10">
             <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Schemes</h5>
-            <SchemesSection colorTokens={byCategory("colors")} />
+            <SchemesSection colorTokens={byCategory("colors")} schemes={snapshot.schemes} />
           </section>
           <Separator className="mb-10" />
 

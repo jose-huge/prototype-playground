@@ -117,6 +117,18 @@ export interface TokenEntry {
   };
 }
 
+export interface SchemeSwatch {
+  figmaName: string;
+  cssVar:    string;
+  value:     string;
+}
+
+export interface SchemeEntry {
+  name:       string;         // e.g. "Light", "Harvest Dark"
+  collection: string;         // e.g. "Color Schemes"
+  tokens:     SchemeSwatch[]; // all resolved color tokens for this mode
+}
+
 export interface TokenSnapshot {
   meta: {
     figmaFile:     string;
@@ -124,6 +136,7 @@ export interface TokenSnapshot {
     modeStructure: ModeStructure;
   };
   tokens:           TokenEntry[];
+  schemes?:         SchemeEntry[]; // one entry per variable-collection mode
   unresolvedTokens: string[];
 }
 
@@ -425,8 +438,39 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
       }
     }
 
+    // ── Schemes: extract every mode from every color variable collection ────────
+    // This preserves multi-scheme Figma setups (Light / Dark / Brand A / Brand B, etc.)
+    const schemes: SchemeEntry[] = [];
+    for (const col of collections) {
+      const hasColors = col.variableIds.some((id) => {
+        const v = variables[id];
+        return v && !v.remote && v.resolvedType === "COLOR";
+      });
+      if (!hasColors) continue;
+
+      for (const mode of col.modes) {
+        const modeTokens: SchemeSwatch[] = [];
+        for (const varId of col.variableIds) {
+          const variable = variables[varId];
+          if (!variable || variable.remote || variable.resolvedType !== "COLOR") continue;
+          const raw = variable.valuesByMode[mode.modeId];
+          if (raw === undefined) continue;
+          const resolved = resolveValue(raw, mode.modeId, variables);
+          if (resolved === null || !isColor(resolved)) continue;
+          modeTokens.push({
+            figmaName: variable.name,
+            cssVar:    toCssVar(variable.name),
+            value:     figmaColorToHex(resolved as FigmaColor),
+          });
+        }
+        if (modeTokens.length > 0) {
+          schemes.push({ name: mode.name, collection: col.name, tokens: modeTokens });
+        }
+      }
+    }
+
     const finalModeStructure = detectModes(collections);
-    return { meta: { figmaFile: fileName, importedAt, modeStructure: finalModeStructure }, tokens, unresolvedTokens };
+    return { meta: { figmaFile: fileName, importedAt, modeStructure: finalModeStructure }, tokens, schemes, unresolvedTokens };
   }
 
   // No variables — styles only

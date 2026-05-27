@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyButton } from "./shared";
+import { CopyButton, figmaLabel } from "./shared";
 import type { TokenEntry } from "@/app/lib/designSystem";
 
 export function TypographySection({ tokens }: { tokens: TokenEntry[] }) {
@@ -9,7 +9,7 @@ export function TypographySection({ tokens }: { tokens: TokenEntry[] }) {
   return (
     <div className="flex flex-col gap-2">
       {tokens.map((t) => {
-        const specimen = t.cssVar.replace(/^--/, "");
+        const specimen = figmaLabel(t);
         const meta = t.meta;
         const chips: string[] = [];
         if (meta) {
