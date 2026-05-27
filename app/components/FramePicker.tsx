@@ -213,7 +213,7 @@ export default function FramePicker({
   onOpenConfig,
 }: Props) {
   const { config, isConnected, isLoading: configLoading } = useFigmaConfig();
-  const { framesByPage, allFrames, status, error, refresh, isRefreshing = false } = useFrameList(
+  const { framesByPage, allFrames, status, error, refresh, isRefreshing = false, thumbnailsLoading = false } = useFrameList(
     config?.fileKey ?? null,
     config?.token ?? null
   );
@@ -438,6 +438,7 @@ export default function FramePicker({
                         <FrameThumbnail
                           url={frame.thumbnailUrl}
                           name={frame.name}
+                          loading={!frame.thumbnailUrl && thumbnailsLoading}
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate leading-tight" style={{ fontSize: "12px" }}>

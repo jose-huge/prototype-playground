@@ -14,18 +14,20 @@ export interface FramesByPage {
 
 export interface UseFrameListReturn {
   /** Frames grouped by page, in document order */
-  framesByPage:    FramesByPage[];
+  framesByPage:      FramesByPage[];
   /** Flat list (convenience) */
-  allFrames:       FigmaFrame[];
+  allFrames:         FigmaFrame[];
   /** nodeId → thumbnail URL (populated lazily after frames load) */
-  thumbnails:      Record<string, string>;
-  status:          FrameLoadStatus;
+  thumbnails:        Record<string, string>;
+  status:            FrameLoadStatus;
   /** Human-readable error for display */
-  error:           string | null;
+  error:             string | null;
   /** Re-fetch from the API, bypassing cache */
-  refresh:         () => void;
+  refresh:           () => void;
   /** True while a manual refresh is in progress (frames still visible) */
-  isRefreshing:    boolean;
+  isRefreshing:      boolean;
+  /** True while background thumbnail URLs are still being fetched */
+  thumbnailsLoading: boolean;
 }
 
 // ── Cache ──────────────────────────────────────────────────────────────────────
@@ -94,11 +96,12 @@ export function useFrameList(
   fileKey: string | null,
   token:   string | null
 ): UseFrameListReturn {
-  const [frames,       setFrames]       = useState<FigmaFrame[]>([]);
-  const [thumbnails,   setThumbnails]   = useState<Record<string, string>>({});
-  const [status,       setStatus]       = useState<FrameLoadStatus>("idle");
-  const [error,        setError]        = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [frames,            setFrames]            = useState<FigmaFrame[]>([]);
+  const [thumbnails,        setThumbnails]        = useState<Record<string, string>>({});
+  const [status,            setStatus]            = useState<FrameLoadStatus>("idle");
+  const [error,             setError]             = useState<string | null>(null);
+  const [isRefreshing,      setIsRefreshing]      = useState(false);
+  const [thumbnailsLoading, setThumbnailsLoading] = useState(false);
 
   // Prevent stale async callbacks from updating state after unmount or re-fetch
   const fetchIdRef = useRef(0);
@@ -153,6 +156,10 @@ export function useFrameList(
         cache = { fileKey, frames: mergedWithCached, thumbnails: cachedThumbs ?? {}, fetchedAt: Date.now() };
 
         // ── Background thumbnail refresh ────────────────────────────────────
+        // Only show loading state when frames have no cached thumbnails yet.
+        const needsThumbs = mergedWithCached.some((f) => !f.thumbnailUrl);
+        if (needsThumbs) setThumbnailsLoading(true);
+
         const nodeIds = fetched.map((f) => f.id);
         getThumbnails(fileKey, nodeIds, token).then((thumbs) => {
           if (fetchId !== fetchIdRef.current) return;
@@ -169,6 +176,10 @@ export function useFrameList(
             }))
           );
           setIsRefreshing(false);
+          setThumbnailsLoading(false);
+        }).catch(() => {
+          if (fetchId !== fetchIdRef.current) return;
+          setThumbnailsLoading(false);
         });
       } catch (err) {
         if (fetchId !== fetchIdRef.current) return;
@@ -208,6 +219,7 @@ export function useFrameList(
     status,
     error,
     isRefreshing,
+    thumbnailsLoading,
     refresh: () => fetchFrames(true),
   };
 }

@@ -44,10 +44,17 @@ export class FigmaError extends Error {
 // ── Internal fetch wrapper ─────────────────────────────────────────────────────
 
 const FETCH_TIMEOUT_MS = 15_000;
+// Figma's image export API cold-renders frames on the first request, which can
+// take 30+ seconds for large files. Use a longer timeout for those calls only.
+const IMAGE_FETCH_TIMEOUT_MS = 45_000;
 
-async function figmaFetch(path: string, token: string): Promise<Response> {
+async function figmaFetch(
+  path: string,
+  token: string,
+  timeoutMs = FETCH_TIMEOUT_MS,
+): Promise<Response> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: Response;
   try {
@@ -204,7 +211,8 @@ export async function getThumbnails(
     try {
       const res = await figmaFetch(
         `/images/${fileKey}?ids=${encodeURIComponent(ids)}&format=jpg&scale=0.5`,
-        token
+        token,
+        IMAGE_FETCH_TIMEOUT_MS,
       );
       const data = await res.json();
       const images = (data.images ?? {}) as Record<string, string | null>;
