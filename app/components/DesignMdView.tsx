@@ -1,297 +1,89 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getDesignTokens }             from "@/app/actions/design-tokens";
-import type { TokenEntry, TokenSnapshot } from "@/app/lib/designSystem";
+import dynamic from "next/dynamic";
+import { Download, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import styles from "./DesignMdView.module.css";
+import { cn } from "@/lib/utils";
+import { getDesignTokens } from "@/app/actions/design-tokens";
+import type { TokenSnapshot, TokenCategory } from "@/app/lib/designSystem";
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Lazy-loaded section chunks ─────────────────────────────────────────────────
+// Each section is a separate module — Next.js compiles them on demand,
+// not upfront, keeping the initial page compile fast.
 
-/** Last path segment of a Figma name: "Color/Brand/Primary" → "Primary" */
-function shortName(figmaName: string) {
-  const parts = figmaName.split("/");
-  return parts[parts.length - 1].trim();
-}
+const SectionSkeleton = () => (
+  <div className="flex flex-col gap-2 py-2">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="h-8 rounded-md bg-muted animate-pulse" />
+    ))}
+  </div>
+);
 
-/** Group tokens by their first path segment */
-function groupBy(tokens: TokenEntry[]) {
-  const map = new Map<string, TokenEntry[]>();
-  for (const t of tokens) {
-    const key = t.figmaName.includes("/")
-      ? t.figmaName.split("/")[0].trim()
-      : "Other";
-    const list = map.get(key) ?? [];
-    list.push(t);
-    map.set(key, list);
-  }
-  return map;
-}
+const OverviewSection  = dynamic(() => import("./dsv/OverviewSection" ).then((m) => ({ default: m.OverviewSection  })), { ssr: false, loading: SectionSkeleton });
+const SchemesSection   = dynamic(() => import("./dsv/SchemesSection"  ).then((m) => ({ default: m.SchemesSection   })), { ssr: false, loading: SectionSkeleton });
+const ColorsSection    = dynamic(() => import("./dsv/ColorsSection"   ).then((m) => ({ default: m.ColorsSection    })), { ssr: false, loading: SectionSkeleton });
+const TypographySection= dynamic(() => import("./dsv/TypographySection").then((m) => ({ default: m.TypographySection})), { ssr: false, loading: SectionSkeleton });
+const SpacingSection   = dynamic(() => import("./dsv/SpacingSection"  ).then((m) => ({ default: m.SpacingSection   })), { ssr: false, loading: SectionSkeleton });
+const RadiusSection    = dynamic(() => import("./dsv/RadiusSection"   ).then((m) => ({ default: m.RadiusSection    })), { ssr: false, loading: SectionSkeleton });
+const ShadowsSection   = dynamic(() => import("./dsv/ShadowsSection"  ).then((m) => ({ default: m.ShadowsSection   })), { ssr: false, loading: SectionSkeleton });
+const AnimationSection = dynamic(() => import("./dsv/AnimationSection").then((m) => ({ default: m.AnimationSection  })), { ssr: false, loading: SectionSkeleton });
+const OtherSection     = dynamic(() => import("./dsv/OtherSection"    ).then((m) => ({ default: m.OtherSection     })), { ssr: false, loading: SectionSkeleton });
 
-// ── Category sections ──────────────────────────────────────────────────────────
+// ── Section config ─────────────────────────────────────────────────────────────
 
-function ColorSection({ tokens }: { tokens: TokenEntry[] }) {
-  const groups = groupBy(tokens);
-  return (
-    <div className={styles.colorGroups}>
-      {[...groups.entries()].map(([group, entries]) => (
-        <div key={group} className={styles.colorGroup}>
-          <h3 className={styles.groupLabel}>{group}</h3>
-          <div className={styles.colorGrid}>
-            {entries.map((t) => (
-              <div key={t.cssVar} className={styles.colorCard}>
-                <div className={styles.swatchRow}>
-                  <div
-                    className={styles.swatch}
-                    style={{ background: t.valueLight }}
-                    title={`Light: ${t.valueLight}`}
-                  />
-                  {t.valueDark && (
-                    <div
-                      className={styles.swatch}
-                      style={{ background: t.valueDark }}
-                      title={`Dark: ${t.valueDark}`}
-                    />
-                  )}
-                </div>
-                <p className={styles.cardName}>{shortName(t.figmaName)}</p>
-                <p className={styles.cardVar}>{t.cssVar}</p>
-                <p className={styles.cardValue}>
-                  {t.valueLight}
-                  {t.valueDark && <span className={styles.darkValue}> / {t.valueDark}</span>}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+type SectionId = TokenCategory | "overview" | "schemes";
 
-function ScaleSection({ tokens }: { tokens: TokenEntry[] }) {
-  // Sort by numeric value so the scale reads in order
-  const sorted = [...tokens].sort((a, b) => {
-    const av = parseFloat(a.valueLight);
-    const bv = parseFloat(b.valueLight);
-    return (isNaN(av) ? 999 : av) - (isNaN(bv) ? 999 : bv);
-  });
-
-  return (
-    <table className={styles.tokenTable}>
-      <thead>
-        <tr>
-          <th>Token</th>
-          <th>CSS variable</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {sorted.map((t) => (
-          <tr key={t.cssVar}>
-            <td>{shortName(t.figmaName)}</td>
-            <td><code>{t.cssVar}</code></td>
-            <td>{t.valueLight}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-function RadiusSection({ tokens }: { tokens: TokenEntry[] }) {
-  const sorted = [...tokens].sort((a, b) => {
-    const av = parseFloat(a.valueLight);
-    const bv = parseFloat(b.valueLight);
-    return (isNaN(av) ? 999 : av) - (isNaN(bv) ? 999 : bv);
-  });
-
-  return (
-    <div className={styles.radiusRow}>
-      {sorted.map((t) => (
-        <div key={t.cssVar} className={styles.radiusCard}>
-          <div
-            className={styles.radiusSample}
-            style={{ borderRadius: t.valueLight === "9999px" ? "9999px" : t.valueLight }}
-          />
-          <p className={styles.cardName}>{shortName(t.figmaName)}</p>
-          <p className={styles.cardValue}>{t.valueLight}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ShadowSection({ tokens }: { tokens: TokenEntry[] }) {
-  return (
-    <div className={styles.shadowGrid}>
-      {tokens.map((t) => (
-        <div key={t.cssVar} className={styles.shadowCard}>
-          <div className={styles.shadowSample} style={{ boxShadow: t.valueLight }} />
-          <p className={styles.cardName}>{shortName(t.figmaName)}</p>
-          <p className={styles.cardVar}>{t.cssVar}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TypographySection({ tokens }: { tokens: TokenEntry[] }) {
-  const sorted = [...tokens].sort((a, b) => {
-    const av = parseFloat(a.valueLight);
-    const bv = parseFloat(b.valueLight);
-    return (isNaN(bv) ? 0 : bv) - (isNaN(av) ? 0 : av); // largest first
-  });
-
-  return (
-    <table className={styles.tokenTable}>
-      <thead>
-        <tr>
-          <th>Token</th>
-          <th>CSS variable</th>
-          <th>Value</th>
-          {sorted.some((t) => t.meta?.fontFamily) && <th>Family</th>}
-          {sorted.some((t) => t.meta?.fontWeight) && <th>Weight</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {sorted.map((t) => (
-          <tr key={t.cssVar}>
-            <td>{shortName(t.figmaName)}</td>
-            <td><code>{t.cssVar}</code></td>
-            <td>{t.valueLight}</td>
-            {sorted.some((s) => s.meta?.fontFamily) && <td>{t.meta?.fontFamily ?? "—"}</td>}
-            {sorted.some((s) => s.meta?.fontWeight) && <td>{t.meta?.fontWeight ?? "—"}</td>}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-function GenericSection({ tokens }: { tokens: TokenEntry[] }) {
-  const hasDark = tokens.some((t) => t.valueDark);
-  return (
-    <table className={styles.tokenTable}>
-      <thead>
-        <tr>
-          <th>Token</th>
-          <th>CSS variable</th>
-          <th>Value</th>
-          {hasDark && <th>Dark</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {tokens.map((t) => (
-          <tr key={t.cssVar}>
-            <td>{shortName(t.figmaName)}</td>
-            <td><code>{t.cssVar}</code></td>
-            <td>{t.valueLight}</td>
-            {hasDark && <td>{t.valueDark ?? "—"}</td>}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-// ── Token viewer ───────────────────────────────────────────────────────────────
-
-const CATEGORY_LABELS: Record<string, string> = {
-  colors:     "Colors",
-  typography: "Typography",
-  spacing:    "Spacing",
-  radius:     "Border radius",
-  shadows:    "Shadows",
-  animation:  "Animation",
-  other:      "Other",
-};
-
-function TokenViewer({ snapshot }: { snapshot: TokenSnapshot }) {
-  const { meta, tokens } = snapshot;
-  const date = new Date(meta.importedAt).toLocaleDateString("en-US", {
-    year: "numeric", month: "long", day: "numeric",
-  });
-
-  const modeLabel: Record<string, string> = {
-    both:         "Light + dark",
-    "light-only": "Light only",
-    "dark-only":  "Dark only",
-    single:       "Single mode",
-  };
-
-  const categoryOrder = ["colors", "typography", "spacing", "radius", "shadows", "animation", "other"];
-
-  return (
-    <div className={styles.viewer}>
-      {/* Header */}
-      <div className={styles.viewerHeader}>
-        <h1 className={styles.viewerTitle}>{meta.figmaFile}</h1>
-        <p className={styles.viewerMeta}>
-          {tokens.length} tokens · {modeLabel[meta.modeStructure] ?? meta.modeStructure} · Imported {date}
-        </p>
-      </div>
-
-      {/* Category sections */}
-      {categoryOrder.map((cat) => {
-        const catTokens = tokens.filter((t) => t.category === cat);
-        if (!catTokens.length) return null;
-        return (
-          <section key={cat} className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              {CATEGORY_LABELS[cat] ?? cat}
-              <span className={styles.sectionCount}>{catTokens.length}</span>
-            </h2>
-            {cat === "colors"     && <ColorSection     tokens={catTokens} />}
-            {cat === "typography" && <TypographySection tokens={catTokens} />}
-            {cat === "spacing"    && <ScaleSection      tokens={catTokens} />}
-            {cat === "radius"     && <RadiusSection     tokens={catTokens} />}
-            {cat === "shadows"    && <ShadowSection     tokens={catTokens} />}
-            {(cat === "animation" || cat === "other") && <GenericSection tokens={catTokens} />}
-          </section>
-        );
-      })}
-    </div>
-  );
-}
+const SECTIONS: Array<{ id: SectionId; label: string }> = [
+  { id: "overview",   label: "Overview"   },
+  { id: "schemes",    label: "Schemes"    },
+  { id: "colors",     label: "Colors"     },
+  { id: "typography", label: "Typography" },
+  { id: "spacing",    label: "Spacing"    },
+  { id: "radius",     label: "Radius"     },
+  { id: "shadows",    label: "Shadows"    },
+  { id: "animation",  label: "Animation"  },
+  { id: "other",      label: "Other"      },
+];
 
 // ── Shell states ───────────────────────────────────────────────────────────────
 
-function EmptyState() {
-  return (
-    <div className={styles.root}>
-      <div className={styles.empty}>
-        <div className={styles.emptyIcon} aria-hidden="true">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <rect x="6" y="10" width="28" height="22" rx="3" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M12 16h16M12 21h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="31" cy="11" r="5" fill="currentColor" fillOpacity="0.12" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M29 11l1.3 1.3L33 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <h2 className={styles.emptyTitle}>No design system imported yet</h2>
-        <p className={styles.emptyBody}>
-          Connect your Figma file in <strong>Settings → Import design system</strong> to
-          populate this reference with your color schemes, typography, spacing, and tokens.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function BuildingState() {
   return (
-    <div className={styles.root}>
-      <div className={styles.empty}>
-        <div className={styles.emptyIconSpinning} aria-hidden="true">
-          <Spinner className="size-7 text-foreground" />
-        </div>
-        <h2 className={styles.emptyTitle}>Building your design system…</h2>
-        <p className={styles.emptyBody}>
+    <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8 py-16">
+      <Spinner className="size-6 text-foreground" />
+      <div>
+        <p className="text-sm font-medium text-foreground">Building your design system…</p>
+        <p className="text-xs text-muted-foreground mt-1">
           Pulling variables, color schemes, typography, and tokens from your Figma file.
           This takes about 10–20 seconds.
         </p>
       </div>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8 py-16">
+      <Download size={28} className="text-muted-foreground/40" />
+      <div>
+        <p className="text-sm font-medium text-foreground">No design system imported yet</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Open Settings, connect your Figma file, then click <strong>Import from Figma</strong>.
+        </p>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          window.dispatchEvent(new CustomEvent("playground:navigate", { detail: "Settings" }))
+        }
+      >
+        Open Settings
+      </Button>
     </div>
   );
 }
@@ -305,12 +97,22 @@ interface Props {
 export default function DesignMdView({ isImporting = false }: Props) {
   const [snapshot,    setSnapshot]    = useState<TokenSnapshot | null>(null);
   const [initLoading, setInitLoading] = useState(true);
+  const [error,       setError]       = useState<string | null>(null);
+  const [activeTab,   setActiveTab]   = useState<SectionId>("overview");
+  const scrollRef   = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Partial<Record<SectionId, HTMLElement | null>>>({});
   const prevImporting = useRef(isImporting);
 
   async function load() {
-    const data = await getDesignTokens();
-    setSnapshot(data);
-    setInitLoading(false);
+    setError(null);
+    try {
+      const data = await getDesignTokens();
+      setSnapshot(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load");
+    } finally {
+      setInitLoading(false);
+    }
   }
 
   // Read snapshot from disk on mount
@@ -318,14 +120,200 @@ export default function DesignMdView({ isImporting = false }: Props) {
 
   // Re-read the moment import finishes (true → false transition)
   useEffect(() => {
-    if (prevImporting.current === true && isImporting === false) {
+    if (prevImporting.current === true && !isImporting) {
+      setInitLoading(true);
       load();
     }
     prevImporting.current = isImporting;
   }, [isImporting]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const scrollTo = (id: SectionId) => {
+    setActiveTab(id);
+    const el = sectionRefs.current[id];
+    const container = scrollRef.current;
+    if (el && container) {
+      container.scrollTo({ top: el.offsetTop - 8, behavior: "smooth" });
+    }
+  };
+
+  // ── Loading / error / empty states ────────────────────────────────────────
+
   if (isImporting)  return <BuildingState />;
-  if (initLoading)  return <div className={styles.root}><Spinner className="size-5 text-muted-foreground" /></div>;
-  if (!snapshot)    return <EmptyState />;
-  return <TokenViewer snapshot={snapshot} />;
+
+  if (initLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Spinner className="size-4 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-8">
+        <p className="text-sm text-destructive">Failed to load design system</p>
+        <p className="text-xs text-muted-foreground">{error}</p>
+        <Button size="sm" variant="outline" className="gap-1.5 mt-2" onClick={() => { setInitLoading(true); load(); }}>
+          <RotateCcw size={12} /> Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!snapshot) return <EmptyState />;
+
+  // ── Populated view ────────────────────────────────────────────────────────
+
+  const byCategory = (cat: TokenCategory) => snapshot.tokens.filter((t) => t.category === cat);
+  const hasDark    = snapshot.meta.modeStructure === "both" || snapshot.meta.modeStructure === "dark-only";
+  const date       = new Date(snapshot.meta.importedAt).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric",
+  });
+
+  const visibleSections = SECTIONS.filter((s) => {
+    if (s.id === "overview" || s.id === "schemes") return true;
+    return byCategory(s.id as TokenCategory).length > 0;
+  });
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+
+      {/* ── Sticky header + tabs ────────────────────────────────────────── */}
+      <div className="shrink-0 border-b border-border bg-background">
+        <div className="px-6 pt-4 pb-0 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold leading-tight">Design Variables</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {snapshot.meta.figmaFile} · {date}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 shrink-0"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("playground:navigate", { detail: "Settings" }))
+            }
+          >
+            <Download size={12} />
+            Re-import
+          </Button>
+        </div>
+
+        {/* Tab bar */}
+        <nav className="flex px-6 mt-3 overflow-x-auto" aria-label="Design system sections">
+          {visibleSections.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => scrollTo(s.id)}
+              className={cn(
+                "px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap transition-colors",
+                activeTab === s.id
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* ── Scrollable content ───────────────────────────────────────────── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div className="px-6 py-6 flex flex-col gap-0 max-w-4xl">
+
+          {/* Overview */}
+          <section ref={(el) => { sectionRefs.current["overview"] = el; }} className="pb-10">
+            <h5 className="text-sm font-medium text-foreground mb-6">Overview</h5>
+            <OverviewSection snapshot={snapshot} onNavigate={(id) => scrollTo(id as SectionId)} />
+          </section>
+          <Separator className="mb-10" />
+
+          {/* Schemes */}
+          <section ref={(el) => { sectionRefs.current["schemes"] = el; }} className="pb-10">
+            <h5 className="text-sm font-medium text-foreground mb-6">Schemes</h5>
+            <SchemesSection colorTokens={byCategory("colors")} />
+          </section>
+          <Separator className="mb-10" />
+
+          {/* Colors */}
+          {byCategory("colors").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["colors"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Colors</h5>
+                <ColorsSection tokens={byCategory("colors")} hasDark={hasDark} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Typography */}
+          {byCategory("typography").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["typography"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Typography</h5>
+                <TypographySection tokens={byCategory("typography")} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Spacing */}
+          {byCategory("spacing").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["spacing"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Spacing</h5>
+                <SpacingSection tokens={byCategory("spacing")} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Radius */}
+          {byCategory("radius").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["radius"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Border Radius</h5>
+                <RadiusSection tokens={byCategory("radius")} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Shadows */}
+          {byCategory("shadows").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["shadows"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Shadows</h5>
+                <ShadowsSection tokens={byCategory("shadows")} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Animation */}
+          {byCategory("animation").length > 0 && (
+            <>
+              <section ref={(el) => { sectionRefs.current["animation"] = el; }} className="pb-10">
+                <h5 className="text-sm font-medium text-foreground mb-6">Animation</h5>
+                <AnimationSection tokens={byCategory("animation")} />
+              </section>
+              <Separator className="mb-10" />
+            </>
+          )}
+
+          {/* Other */}
+          {byCategory("other").length > 0 && (
+            <section ref={(el) => { sectionRefs.current["other"] = el; }} className="pb-10">
+              <h5 className="text-sm font-medium text-foreground mb-6">Other</h5>
+              <OtherSection tokens={byCategory("other")} />
+            </section>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
 }
