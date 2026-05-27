@@ -433,7 +433,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [frameLoading,  setFrameLoading]  = useState(false);
   const [builtFrameIds, setBuiltFrameIds] = useState<Set<string>>(new Set());
   // Filesystem + localStorage backed component list
-  const [builtComponentsList, setBuiltComponentsList] = useState<ComponentRecord[]>([]);
+  const [builtComponentsList, setBuiltComponentsList] = useState<ComponentRecord[]>(() => loadStoredComponents());
 
   // Pending build metadata — component is added to the sidebar only when its
   // file lands on disk (detected by polling), not when the clipboard copy fires.
@@ -572,8 +572,6 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
 
   // Poll every 3 s — auto-discovers components as soon as they land on disk.
   useEffect(() => {
-    const stored = loadStoredComponents();
-    if (stored.length > 0) setBuiltComponentsList(stored);
     refreshComponents();
     const id = setInterval(refreshComponents, 3000);
     // Auto-open settings when launched from "Get Started"
