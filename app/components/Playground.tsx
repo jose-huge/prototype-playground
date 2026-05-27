@@ -435,6 +435,12 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   // Filesystem + localStorage backed component list
   const [builtComponentsList, setBuiltComponentsList] = useState<ComponentRecord[]>(() => loadStoredComponents());
 
+  // Snapshot of localStorage loaded on the client at mount time.
+  // Used as a fallback inside refreshComponents when `prev` is still [] because
+  // the lazy initializer above ran on the server (no localStorage) and React's
+  // SSR hydration used that [] rather than re-running the initializer on the client.
+  const startupStorageRef = useRef<ComponentRecord[] | null>(null);
+
   // Pending build metadata — component is added to the sidebar only when its
   // file lands on disk (detected by polling), not when the clipboard copy fires.
   const pendingBuildRef = useRef<{
@@ -530,10 +536,15 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
         }
 
         setBuiltComponentsList((prev) => {
+          // If prev is still [] it means the lazy initializer ran on the server with no
+          // localStorage and React's hydration kept that value. Fall back to the client-
+          // side snapshot loaded synchronously in the mounting effect.
+          const effectivePrev = prev.length > 0 ? prev : (startupStorageRef.current ?? []);
+
           // Case-insensitive lookup: Figma frame names are often lowercase ("tagline")
           // but disk files are PascalCase ("Tagline"). Match them by lowercased key so
           // the disk entry inherits the existing metadata instead of creating a duplicate.
-          const prevMapLower = new Map(prev.map((c) => [c.name.toLowerCase(), c]));
+          const prevMapLower = new Map(effectivePrev.map((c) => [c.name.toLowerCase(), c]));
           const diskLower = new Set(diskNames.map((n) => n.toLowerCase()));
 
           // Disk-based components — use PascalCase name from disk, keep existing metadata
@@ -559,7 +570,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
 
           // Preserve manually-tracked items that aren't on disk, but drop any
           // stale 'current' entries whose file never landed (e.g. from a previous session).
-          const manualEntries = prev.filter(
+          const manualEntries = effectivePrev.filter(
             (c) => !diskLower.has(c.name.toLowerCase()) && c.status !== 'current'
           );
           const merged = [...diskEntries, ...manualEntries];
@@ -572,6 +583,10 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
 
   // Poll every 3 s — auto-discovers components as soon as they land on disk.
   useEffect(() => {
+    // Populate the client-side storage snapshot before the first async fetch fires.
+    // refreshComponents' setBuiltComponentsList callback uses this as a fallback when
+    // prev is [] (SSR hydration edge case).
+    startupStorageRef.current = loadStoredComponents();
     refreshComponents();
     const id = setInterval(refreshComponents, 3000);
     // Auto-open settings when launched from "Get Started"
