@@ -15,9 +15,9 @@ export default function DesignMdView({ isImporting = false }: Props) {
   return (
     <div className={styles.root}>
       <div className={styles.empty}>
-        <div className={styles.emptyIcon} aria-hidden="true">
+        <div className={isImporting ? styles.emptyIconSpinning : styles.emptyIcon} aria-hidden="true">
           {isImporting ? (
-            <Spinner className="size-6 text-muted-foreground" />
+            <Spinner className="size-7 text-foreground" />
           ) : (
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
               <rect x="6" y="10" width="28" height="22" rx="3" stroke="currentColor" strokeWidth="1.5" />

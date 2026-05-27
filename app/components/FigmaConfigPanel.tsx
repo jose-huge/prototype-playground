@@ -95,7 +95,11 @@ export default function FigmaConfigPanel({
       setImportDone(false);
       setFatalError(null);
     } else {
-      abortRef.current?.abort();
+      // Don't abort if an import is actively running — let it finish in the
+      // background so the Design Variables page can show its building state.
+      if (!importing) {
+        abortRef.current?.abort();
+      }
     }
     onOpenChange(next);
   };
