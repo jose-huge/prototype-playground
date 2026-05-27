@@ -1,3 +1,5 @@
+// Master template — do not modify directly. This is the reference version of the Design Variables page.
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";

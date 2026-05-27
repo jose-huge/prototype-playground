@@ -44,6 +44,13 @@ yarn-error.log*
 src/styles/tokens.css
 src/docs/design.md
 src/docs/tokens.json
+docs/design.md
+docs/import-meta.json
+docs/tokens.json
+styles/generated-tokens.css
+
+# machine-specific Claude settings (allowlists, local paths — never commit)
+.claude/settings.local.json
 
 # local Figma credentials (machine-specific, never commit)
 .figma-config.json

@@ -428,6 +428,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [schemeOverride, setSchemeOverride] = useState<SchemeName | undefined>(undefined);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [figmaConfigOpen, setFigmaConfigOpen] = useState(false);
+  const [isImportingDesignSystem, setIsImportingDesignSystem] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<SelectedFrame | null>(null);
   const [frameLoading,  setFrameLoading]  = useState(false);
   const [builtFrameIds, setBuiltFrameIds] = useState<Set<string>>(new Set());
@@ -534,27 +535,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
       .catch(() => []);
 
   // Poll every 3 s — auto-discovers components as soon as they land on disk.
-  // On mount, clear ALL playground localStorage keys so every fresh clone
-  // starts with no project data — connection, tokens, components, settings.
   useEffect(() => {
-    // Component/build state
-    localStorage.removeItem("playground_built_components");
-    localStorage.removeItem(COMPONENTS_STORAGE_KEY);
-    // Project identity
-    localStorage.removeItem("playground-project-name");
-    localStorage.removeItem("playground-logo");
-    // Framework / animation settings
-    localStorage.removeItem("playground_framework");
-    localStorage.removeItem("playground_animation");
-    localStorage.removeItem("playground_original_framework");
-    localStorage.removeItem("playground_original_animation");
-    // Figma connection (token + file key stored client-side)
-    localStorage.removeItem("figma-token");
-    localStorage.removeItem("figma-file-key");
-    localStorage.removeItem("figma-file-name");
-    localStorage.removeItem("figma_token");
-    localStorage.removeItem("figma_fileKey");
-    localStorage.removeItem("figma_fileName");
     const stored = loadStoredComponents();
     if (stored.length > 0) setBuiltComponentsList(stored);
     refreshComponents();
@@ -1106,7 +1087,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               />
             </div>
           ) : localItem === "Design Variables" ? (
-            <DesignMdView />
+            <DesignMdView isImporting={isImportingDesignSystem} />
           ) : localItem === "figma-build" ? (
             <BuildPanel
               selection={selectedFrame}
@@ -1195,6 +1176,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
         open={figmaConfigOpen}
         onOpenChange={setFigmaConfigOpen}
         onConnected={() => {}}
+        onImportingChange={setIsImportingDesignSystem}
         builtCount={builtComponentsList.length}
       />
 
