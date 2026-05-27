@@ -858,7 +858,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               return (
                 <SidebarGroup>
                   <SidebarGroupLabel className="uppercase tracking-wider text-[10px]">
-                    Current
+                    Components
                   </SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
