@@ -56,9 +56,15 @@ export default function VirtualDesktop() {
       const saved = localStorage.getItem("playground-project-name");
       setProjectName(saved || DEFAULT_PROJECT_NAME);
     };
+    // Custom event: fired same-tab when Settings saves (storage event is cross-tab only)
+    const onCustom = (e: CustomEvent) => setProjectName(e.detail || DEFAULT_PROJECT_NAME);
     read();
     window.addEventListener("storage", read);
-    return () => window.removeEventListener("storage", read);
+    window.addEventListener("playground:project-name", onCustom as EventListener);
+    return () => {
+      window.removeEventListener("storage", read);
+      window.removeEventListener("playground:project-name", onCustom as EventListener);
+    };
   }, []);
 
   useEffect(() => {

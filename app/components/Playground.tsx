@@ -652,6 +652,8 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     setProjectName(name);
     setDraftName(name);
     localStorage.setItem("playground-project-name", name);
+    // Notify same-tab listeners (the `storage` event only fires cross-tab)
+    window.dispatchEvent(new CustomEvent("playground:project-name", { detail: name }));
     setLogoSrc(draftLogoSrc);
     if (draftLogoSrc === DEFAULT_LOGO) {
       localStorage.removeItem("playground-logo");
