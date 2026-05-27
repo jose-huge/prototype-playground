@@ -535,27 +535,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
       .catch(() => []);
 
   // Poll every 3 s — auto-discovers components as soon as they land on disk.
-  // On mount, clear ALL playground localStorage keys so every fresh clone
-  // starts with no project data — connection, tokens, components, settings.
   useEffect(() => {
-    // Component/build state
-    localStorage.removeItem("playground_built_components");
-    localStorage.removeItem(COMPONENTS_STORAGE_KEY);
-    // Project identity
-    localStorage.removeItem("playground-project-name");
-    localStorage.removeItem("playground-logo");
-    // Framework / animation settings
-    localStorage.removeItem("playground_framework");
-    localStorage.removeItem("playground_animation");
-    localStorage.removeItem("playground_original_framework");
-    localStorage.removeItem("playground_original_animation");
-    // Figma connection (token + file key stored client-side)
-    localStorage.removeItem("figma-token");
-    localStorage.removeItem("figma-file-key");
-    localStorage.removeItem("figma-file-name");
-    localStorage.removeItem("figma_token");
-    localStorage.removeItem("figma_fileKey");
-    localStorage.removeItem("figma_fileName");
     const stored = loadStoredComponents();
     if (stored.length > 0) setBuiltComponentsList(stored);
     refreshComponents();
