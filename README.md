@@ -1,18 +1,116 @@
 # Prototype Playground
 
-Prototype Playground — a blank starter for designers to build components from Figma using Claude Code.
+A blank starter for designers to build components from Figma using Claude Code.
 
-## Getting Started
+---
 
+## What this is
+
+Prototype Playground connects your Figma file to Claude Code so you can build, preview, and iterate on components without writing code. When you're done, package the component for your dev team in one click.
+
+---
+
+## First time setup
+
+You'll need two things installed on your Mac before you start:
+
+- **Node.js** — download from [nodejs.org](https://nodejs.org) (click the LTS version)
+- **Claude Code** — follow the install guide at [claude.ai/code](https://claude.ai/code)
+
+If you're not sure whether you have these, open Terminal (press `Cmd + Space`, type `Terminal`, hit enter) and ask Claude Code — it will check for you.
+
+---
+
+## Getting the playground
+
+You only do this once per project.
+
+**Step 1 — Open Terminal**
+Press `Cmd + Space`, type `Terminal`, hit enter.
+
+**Step 2 — Go to your Desktop**
+```bash
+cd ~/Desktop
+```
+
+**Step 3 — Download the playground**
+```bash
+git clone https://github.com/jose-huge/prototype-playground.git
+```
+
+**Step 4 — Go into the folder**
+```bash
+cd prototype-playground
+```
+
+**Step 5 — Install dependencies**
 ```bash
 npm install
+```
+This takes about 30–60 seconds. You'll see a lot of text — that's normal.
+
+**Step 6 — Start it up**
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the playground.
+**Step 7 — Open in your browser**
+Go to [http://localhost:3000](http://localhost:3000)
+
+You should see the blank playground. If something goes wrong at any step, open Claude Code and paste the error — it will fix it for you.
+
+---
 
 ## How it works
 
-- Drop into the playground and describe a component from Figma
-- Claude Code builds it into `/components/` automatically
-- The playground hot-reloads and previews it instantly — no manual wiring needed
+1. **Connect your Figma file** — go to Settings, paste your Figma file URL and access token
+2. **Import your design system** — Settings → Import design system → generates tokens, design docs, and the Design Variables page automatically
+3. **Browse frames** — click Browse in the sidebar, pick a frame from your Figma file
+4. **Copy build context** — click the button to copy the prompt + Figma context
+5. **Paste into Claude Code** — Claude builds the component and it appears in the playground instantly
+6. **Refine** — prompt Claude to adjust until it matches the design
+7. **Add variations** — use "+ Add variation" in the toolbar for mobile or other versions
+8. **Package for dev** — when done, click "Package for dev" in the toolbar to download a zip with everything dev needs
+
+---
+
+## Keeping your project separate from the template
+
+When you start a real project, create a content branch so your Figma content, tokens, and built components never get pushed back to the shared template:
+
+```bash
+git checkout -b content/your-project-name
+```
+
+Work on this branch. Your content stays local and separate from the template.
+
+If you're not sure how to do this, tell Claude Code:
+> "Create a content branch for my project called [project name]"
+
+---
+
+## Getting updates to the playground
+
+When the playground template gets improved, pull the latest changes into your project:
+
+```bash
+git checkout main
+git pull
+git checkout content/your-project-name
+git merge main
+```
+
+Or just tell Claude Code:
+> "Pull the latest playground updates into my project"
+
+---
+
+## Warnings during npm install
+
+You may see messages like `deprecated`, `vulnerabilities`, or `packages looking for funding` during `npm install`. These are normal and won't affect anything. Ignore them.
+
+---
+
+## Questions
+
+If anything breaks or you're not sure what to do, open Claude Code and describe what happened. It has full context of the playground and will walk you through the fix.
