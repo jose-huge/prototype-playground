@@ -6,6 +6,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 import type { SchemeEntry, TokenEntry } from "@/app/lib/designSystem";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -15,63 +16,71 @@ function shortLabel(figmaName: string) {
   return parts[parts.length - 1].trim();
 }
 
-/** Pick the best background + foreground value from a list of swatches */
-function pickBgFg(entries: Array<{ figmaName: string; value: string }>) {
-  const bg = entries.find((e) =>
-    /background|surface|canvas|base/i.test(e.figmaName)
-  )?.value ?? entries[0]?.value ?? "#f5f5f5";
+function pickBg(entries: Array<{ figmaName: string; value: string }>) {
+  return (
+    entries.find((e) => /background|surface|canvas|base/i.test(e.figmaName))?.value ??
+    entries[0]?.value ??
+    "#f5f5f5"
+  );
+}
 
-  const fg = entries.find((e) =>
-    /headline|heading|text|foreground|on-/i.test(e.figmaName)
-  )?.value ?? "#111111";
+function pickDot(entries: Array<{ figmaName: string; value: string }>) {
+  return (
+    entries.find((e) => /accent|primary|brand/i.test(e.figmaName))?.value ??
+    entries.find((e) => /foreground|text|heading|on-/i.test(e.figmaName))?.value ??
+    entries[1]?.value ??
+    "#888888"
+  );
+}
 
-  return { bg, fg };
+function toDataScheme(name: string) {
+  return name.trim().toLowerCase().replace(/\s*\+\s*/g, "-").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 }
 
 // ── Scheme card ────────────────────────────────────────────────────────────────
 
-function SchemeCard({
-  name,
-  entries,
-}: {
+function SchemeCard({ name, entries }: {
   name: string;
   entries: Array<{ figmaName: string; cssVar?: string; value: string }>;
 }) {
-  const { bg, fg } = pickBgFg(entries);
-  const swatches   = entries.slice(0, 12);
+  const bg         = pickBg(entries);
+  const dot        = pickDot(entries);
+  const dataScheme = toDataScheme(name);
+  const swatches   = entries.slice(0, 10);
 
   return (
-    <div
-      className="rounded-lg p-4 flex flex-col gap-3"
-      style={{ background: bg }}
-    >
-      <p
-        className="text-xs font-semibold tracking-wide uppercase font-mono truncate"
-        style={{ color: fg }}
-      >
-        {name}
-      </p>
-      <div className="flex gap-1.5 flex-wrap">
-        {swatches.map((t, i) => {
-          const isDark = /^#([01][0-9a-fA-F]{5})/.test(bg) && bg !== "#ffffff";
-          return (
-            <Tooltip key={t.cssVar ?? `${name}-${i}`}>
-              <TooltipTrigger
-                className="w-5 h-5 rounded-full shrink-0 cursor-default block"
-                style={{
-                  background: t.value,
-                  boxShadow: `0 0 0 1.5px ${isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}`,
-                }}
-              />
-              <TooltipContent>
-                <span className="font-medium">{shortLabel(t.figmaName)}</span>
-                <span className="ml-1.5 opacity-70 font-mono">{t.value}</span>
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
+    <Card className="overflow-hidden">
+      {/* Colored banner with dot + swatches */}
+      <div className="h-28 relative p-3 flex flex-col justify-end" style={{ background: bg }}>
+        <TooltipProvider>
+          <div className="flex gap-1 flex-wrap">
+            {swatches.map((t, i) => (
+              <Tooltip key={t.cssVar ?? `${name}-${i}`}>
+                <TooltipTrigger
+                  className="w-4 h-4 rounded-full shrink-0 cursor-default block"
+                  style={{
+                    background: t.value,
+                    boxShadow: "0 0 0 1.5px rgba(0,0,0,0.1)",
+                  }}
+                />
+                <TooltipContent>
+                  <span className="font-medium">{shortLabel(t.figmaName)}</span>
+                  <span className="ml-1.5 opacity-70 font-mono">{t.value}</span>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
       </div>
-    </div>
+
+      {/* Card body */}
+      <CardContent className="pt-3 flex flex-col gap-1">
+        <p className="text-sm font-semibold text-foreground">{name}</p>
+        <code className="text-xs text-muted-foreground font-mono break-all">
+          data-scheme=&quot;{dataScheme}&quot;
+        </code>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -80,9 +89,7 @@ function SchemeCard({
 function groupByPrefix(tokens: TokenEntry[]): Map<string, TokenEntry[]> {
   const map = new Map<string, TokenEntry[]>();
   for (const t of tokens) {
-    const key = t.figmaName.includes("/")
-      ? t.figmaName.split("/")[0].trim()
-      : "Other";
+    const key = t.figmaName.includes("/") ? t.figmaName.split("/")[0].trim() : "Other";
     const list = map.get(key) ?? [];
     list.push(t);
     map.set(key, list);
@@ -102,37 +109,27 @@ export function SchemesSection({ colorTokens, schemes }: Props) {
     return <p className="text-xs text-muted-foreground">No color tokens found.</p>;
   }
 
-  // ── Primary path: use schemes extracted from Figma variable collection modes ──
   if (schemes && schemes.length > 0) {
     return (
-      <TooltipProvider>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {schemes.map((s) => (
-            <SchemeCard key={`${s.collection}::${s.name}`} name={s.name} entries={s.tokens} />
-          ))}
-        </div>
-      </TooltipProvider>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {schemes.map((s) => (
+          <SchemeCard key={`${s.collection}::${s.name}`} name={s.name} entries={s.tokens} />
+        ))}
+      </div>
     );
   }
 
-  // ── Fallback: group flat color tokens by first Figma path segment ─────────────
+  // Fallback
   const groups = groupByPrefix(colorTokens);
-
   return (
-    <TooltipProvider>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[...groups.entries()].map(([groupName, entries]) => (
-          <SchemeCard
-            key={groupName}
-            name={groupName}
-            entries={entries.map((t) => ({
-              figmaName: t.figmaName,
-              cssVar:    t.cssVar,
-              value:     t.valueLight,
-            }))}
-          />
-        ))}
-      </div>
-    </TooltipProvider>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {[...groups.entries()].map(([groupName, entries]) => (
+        <SchemeCard
+          key={groupName}
+          name={groupName}
+          entries={entries.map((t) => ({ figmaName: t.figmaName, cssVar: t.cssVar, value: t.valueLight }))}
+        />
+      ))}
+    </div>
   );
 }

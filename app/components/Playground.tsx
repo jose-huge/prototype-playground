@@ -551,8 +551,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     const handler = (e: Event) => {
       const item = (e as CustomEvent<string>).detail;
       setLocalItem(item);
-      setFigmaConfigOpen(false);
-      onNavigate("playground");
+      setFigmaConfigOpen(true);
     };
     window.addEventListener("playground:navigate", handler);
     return () => window.removeEventListener("playground:navigate", handler);
