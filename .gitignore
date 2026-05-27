@@ -40,6 +40,11 @@ yarn-error.log*
 *apikey*
 *.key
 
+# generated per-project files (do not commit)
+src/styles/tokens.css
+src/docs/design.md
+src/docs/tokens.json
+
 # local Figma credentials (machine-specific, never commit)
 .figma-config.json
 
