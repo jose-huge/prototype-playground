@@ -164,57 +164,76 @@ export async function POST() {
         }
         emit(0, "done", config.fileName);
 
-        // ── Step 2: Fetch variables ──────────────────────────────────────────
+        // ── Steps 2 & 3: Fetch variables + styles list in parallel ──────────
         emit(1, "running");
+        emit(2, "running");
+
         let variablesResponse: FigmaVariablesResponse | null = null;
-        try {
-          variablesResponse = await figmaFetch<FigmaVariablesResponse>(
+        let stylesForBatching: FigmaStyle[] = [];
+
+        const [varsResult, stylesResult] = await Promise.allSettled([
+          figmaFetch<FigmaVariablesResponse>(
             `/files/${config.fileKey}/variables/local`,
             config.token
-          );
+          ),
+          figmaFetch<FigmaStylesResponse>(
+            `/files/${config.fileKey}/styles`,
+            config.token
+          ),
+        ]);
+
+        // Resolve variables
+        if (varsResult.status === "fulfilled") {
+          variablesResponse = varsResult.value;
           const varCount = variablesResponse.meta
             ? Object.keys(variablesResponse.meta.variables ?? {}).length
             : 0;
           emit(1, "done", `${varCount} variables`);
-        } catch (err) {
-          // Variables API may require a paid plan — treat as non-fatal
-          const msg = err instanceof Error ? err.message : String(err);
+        } else {
+          const msg = varsResult.reason instanceof Error ? varsResult.reason.message : String(varsResult.reason);
           emit(1, "done", `Skipped — ${msg.includes("403") ? "requires Figma paid plan" : msg}`);
-          variablesResponse = null;
         }
 
-        // ── Step 3: Fetch styles ─────────────────────────────────────────────
-        emit(2, "running");
+        // Resolve styles list, then fetch all node batches in parallel
         let processedStyles: ProcessedStyle[] = [];
-        try {
-          const stylesRes = await figmaFetch<FigmaStylesResponse>(
-            `/files/${config.fileKey}/styles`,
-            config.token
-          );
-          const styles = stylesRes.meta?.styles ?? [];
-          emit(2, "running", `Fetching ${styles.length} style nodes…`);
+        if (stylesResult.status === "fulfilled") {
+          stylesForBatching = (stylesResult.value.meta?.styles ?? []) as FigmaStyle[];
+          emit(2, "running", `Fetching ${stylesForBatching.length} style nodes…`);
 
-          // Fetch style node data in batches of 50
-          const BATCH = 50;
-          for (let i = 0; i < styles.length; i += BATCH) {
-            const batch  = styles.slice(i, i + BATCH);
-            const ids    = batch.map((s) => s.node_id).join(",");
-            const nodesRes = await figmaFetch<FigmaNodesResponse>(
-              `/files/${config.fileKey}/nodes?ids=${encodeURIComponent(ids)}`,
-              config.token
+          try {
+            const BATCH = 50;
+            const batches: FigmaStyle[][] = [];
+            for (let i = 0; i < stylesForBatching.length; i += BATCH) {
+              batches.push(stylesForBatching.slice(i, i + BATCH));
+            }
+
+            // Fetch all batches in parallel
+            const batchResults = await Promise.all(
+              batches.map((batch) => {
+                const ids = batch.map((s) => s.node_id).join(",");
+                return figmaFetch<FigmaNodesResponse>(
+                  `/files/${config.fileKey}/nodes?ids=${encodeURIComponent(ids)}`,
+                  config.token
+                ).then((nodesRes) => ({ batch, nodesRes }));
+              })
             );
 
-            for (const style of batch) {
-              const node = nodesRes.nodes[style.node_id];
-              if (!node?.document) continue;
-              const processed = processStyleNode(style as FigmaStyle, node.document);
-              if (processed) processedStyles.push(processed);
+            for (const { batch, nodesRes } of batchResults) {
+              for (const style of batch) {
+                const node = nodesRes.nodes[style.node_id];
+                if (!node?.document) continue;
+                const processed = processStyleNode(style as FigmaStyle, node.document);
+                if (processed) processedStyles.push(processed);
+              }
             }
+            emit(2, "done", `${processedStyles.length} styles`);
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            emit(2, "done", `Partial — ${msg}`);
           }
-          emit(2, "done", `${processedStyles.length} styles`);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          emit(2, "done", `Partial — ${msg}`);
+        } else {
+          const msg = stylesResult.reason instanceof Error ? stylesResult.reason.message : String(stylesResult.reason);
+          emit(2, "done", `Skipped — ${msg}`);
         }
 
         // ── Step 4: Process tokens ───────────────────────────────────────────

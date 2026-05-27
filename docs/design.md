@@ -154,12 +154,12 @@ _None_
 ## Other tokens
 | Token | CSS var | Value |
 |---|---|---|
-| Stroke/Border Width | `--stroke-border-width` | `2px` |
-| Stroke/Divider Width | `--stroke-divider-width` | `2px` |
-| Stroke/Focus Border Width | `--stroke-focus-border-width` | `2px` |
 | States/Focus State | `--states-focus-state` | `#000000` |
 | States/Disabled Text | `--states-disabled-text` | `#858281` |
 | States/Disabled Background | `--states-disabled-background` | `#dad9d9` |
+| Stroke/Border Width | `--stroke-border-width` | `2px` |
+| Stroke/Divider Width | `--stroke-divider-width` | `2px` |
+| Stroke/Focus Border Width | `--stroke-focus-border-width` | `2px` |
 | Section Padding/padding-top-bottom-large | `--section-padding-padding-top-bottom-large` | `112px` |
 | Section Padding/padding-top-bottom-medium | `--section-padding-padding-top-bottom-medium` | `80px` |
 | Section Padding/padding-top-bottom-small | `--section-padding-padding-top-bottom-small` | `48px` |
