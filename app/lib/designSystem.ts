@@ -100,12 +100,29 @@ export type TokenCategory = "colors" | "typography" | "spacing" | "radius" | "sh
 
 export type ModeStructure = "single" | "light-only" | "dark-only" | "both";
 
+/** How modes in a collection were classified. */
+export type ModeKind = "theme" | "breakpoint" | "unknown";
+
+/** Info about a multi-mode collection, captured during import. */
+export interface CollectionModeInfo {
+  collectionId:   string;
+  collectionName: string;
+  kind:           ModeKind;
+  /** Modes in resolved order: largest first for breakpoints, Figma order otherwise. */
+  orderedModes:   Array<{ modeId: string; name: string }>;
+}
+
 export interface TokenEntry {
   figmaName:   string;
   cssVar:      string;
   category:    TokenCategory;
   valueLight:  string;
   valueDark?:  string;
+  /**
+   * All resolved mode values for this token, when the collection has >1 mode.
+   * Order matches CollectionModeInfo.orderedModes (largest breakpoint first).
+   */
+  modeValues?: Array<{ modeName: string; modeId: string; value: string }>;
   // For typography from styles
   fromStyle?:  boolean;
   meta?: {
@@ -135,9 +152,11 @@ export interface TokenSnapshot {
     importedAt:    string;
     modeStructure: ModeStructure;
   };
-  tokens:           TokenEntry[];
-  schemes?:         SchemeEntry[]; // one entry per variable-collection mode
-  unresolvedTokens: string[];
+  tokens:                TokenEntry[];
+  schemes?:              SchemeEntry[]; // one entry per variable-collection mode
+  unresolvedTokens:      string[];
+  /** Info about every multi-mode collection (≥2 modes), populated during import. */
+  multiModeCollections?: CollectionModeInfo[];
 }
 
 // ── Name normalisation ─────────────────────────────────────────────────────────
@@ -265,6 +284,82 @@ export function detectModes(collections: FigmaVariableCollection[]): ModeStructu
   return "single";
 }
 
+// ── Multi-mode / breakpoint detection ─────────────────────────────────────────
+
+/** Keywords that signal a mode represents a viewport/screen size. */
+const BREAKPOINT_HINTS = [
+  "mobile", "phone", "tablet", "desktop", "laptop",
+  "compact", "expanded", "wide",
+  "xs", "sm", "md", "lg", "xl", "xxl",
+  "xsmall", "small", "large", "xlarge", "xxlarge",
+  "breakpoint", "viewport", "screen",
+  "320", "375", "576", "768", "1024", "1280", "1440", "1920",
+];
+
+/**
+ * Smallest → Largest ordering for common breakpoint keywords.
+ * Higher value = larger screen → placed earlier in the ordered list (index 0 = default/largest).
+ */
+const BP_SIZE_RANK: Record<string, number> = {
+  "320": 0, "375": 0, xs: 0, xsmall: 0,
+  "576": 1, sm: 1, small: 1, mobile: 1, phone: 1, compact: 1,
+  "768": 2, md: 2, medium: 2, tablet: 2,
+  "1024": 3, lg: 3, large: 3, laptop: 3,
+  "1280": 4, "1440": 4, xl: 4, xlarge: 4, desktop: 4, expanded: 4,
+  "1920": 5, xxl: 5, xxlarge: 5, wide: 5,
+};
+
+/**
+ * Max-width thresholds per tier.
+ * Tier 0 → default (:root, no media query).
+ * Tier 1 → @media (max-width: 1279px).
+ * Tier 2 → @media (max-width: 575px).
+ */
+export const BP_MAX_WIDTHS: Array<number | null> = [null, 1279, 575];
+
+/**
+ * Classify a collection's modes:
+ * - "theme"      → at least one mode name contains a light/dark hint
+ * - "breakpoint" → at least one mode name contains a breakpoint-size hint
+ * - "unknown"    → neither (documented in design.md only, no CSS generated)
+ *
+ * Collections with ≤1 mode always return "unknown".
+ */
+export function detectModeKind(modes: FigmaVariableMode[]): ModeKind {
+  if (modes.length <= 1) return "unknown";
+  const names = modes.map((m) => m.name.toLowerCase());
+  const isTheme = names.some((n) =>
+    [...LIGHT_HINTS, ...DARK_HINTS].some((h) => n.includes(h))
+  );
+  if (isTheme) return "theme";
+  const isBp = names.some((n) =>
+    BREAKPOINT_HINTS.some((h) => n.includes(h))
+  );
+  if (isBp) return "breakpoint";
+  return "unknown";
+}
+
+/**
+ * Order breakpoint modes largest → smallest screen size (index 0 = default/largest).
+ * Falls back to reverse Figma order if no size keywords match.
+ */
+export function orderBreakpointModes(
+  modes: FigmaVariableMode[],
+): Array<{ modeId: string; name: string }> {
+  function rank(name: string): number {
+    const lower = name.toLowerCase();
+    let best = -1;
+    for (const [kw, r] of Object.entries(BP_SIZE_RANK)) {
+      if (lower.includes(kw) && r > best) best = r;
+    }
+    return best;
+  }
+  return [...modes]
+    .map((m) => ({ ...m, rank: rank(m.name) }))
+    .sort((a, b) => b.rank - a.rank)
+    .map(({ modeId, name }) => ({ modeId, name }));
+}
+
 // ── Alias resolution ───────────────────────────────────────────────────────────
 
 function isAlias(v: FigmaVariableValue): v is FigmaVariableAlias {
@@ -348,6 +443,27 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
       });
     }
 
+    // Build multiModeCollections info for every collection with ≥2 modes
+    const multiModeCollections: CollectionModeInfo[] = [];
+    const collectionKinds = new Map<string, ModeKind>();
+
+    for (const col of collections) {
+      const kind = detectModeKind(col.modes);
+      collectionKinds.set(col.id, kind);
+      if (col.modes.length > 1) {
+        const orderedModes =
+          kind === "breakpoint"
+            ? orderBreakpointModes(col.modes)
+            : col.modes.map((m) => ({ modeId: m.modeId, name: m.name }));
+        multiModeCollections.push({
+          collectionId:   col.id,
+          collectionName: col.name,
+          kind,
+          orderedModes,
+        });
+      }
+    }
+
     for (const variable of Object.values(variables)) {
       if (variable.remote) continue; // skip remote/library variables
       if (variable.resolvedType === "BOOLEAN") continue; // not useful for CSS
@@ -398,7 +514,38 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
         }
       }
 
-      tokens.push({ figmaName: variable.name, cssVar, category, valueLight, valueDark });
+      // For breakpoint collections, capture per-mode values so generateTokensCss
+      // can emit @media overrides only for tokens where values actually differ.
+      let modeValues: TokenEntry["modeValues"];
+      const kind = collectionKinds.get(variable.variableCollectionId);
+      if (kind === "breakpoint") {
+        const colInfo = multiModeCollections.find(
+          (c) => c.collectionId === variable.variableCollectionId,
+        );
+        if (colInfo && colInfo.orderedModes.length > 1) {
+          const vals: Array<{ modeName: string; modeId: string; value: string }> = [];
+          for (const mode of colInfo.orderedModes) {
+            const raw = variable.valuesByMode[mode.modeId];
+            if (raw === undefined) continue;
+            const resolved = resolveValue(raw, mode.modeId, variables);
+            if (resolved === null) continue;
+            let v: string;
+            if (isColor(resolved))          v = figmaColorToHex(resolved as FigmaColor);
+            else if (typeof resolved === "number") v = floatToString(resolved, variable.name);
+            else                            v = String(resolved);
+            vals.push({ modeName: mode.name, modeId: mode.modeId, value: v });
+          }
+          // Only attach modeValues when at least one non-default tier differs
+          if (vals.length > 1) {
+            const baseVal = vals[0].value;
+            if (vals.slice(1).some((v) => v.value !== baseVal)) {
+              modeValues = vals;
+            }
+          }
+        }
+      }
+
+      tokens.push({ figmaName: variable.name, cssVar, category, valueLight, valueDark, modeValues });
     }
 
     // ── Styles ─────────────────────────────────────────────────────────────────
@@ -470,7 +617,13 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
     }
 
     const finalModeStructure = detectModes(collections);
-    return { meta: { figmaFile: fileName, importedAt, modeStructure: finalModeStructure }, tokens, schemes, unresolvedTokens };
+    return {
+      meta: { figmaFile: fileName, importedAt, modeStructure: finalModeStructure },
+      tokens,
+      schemes,
+      unresolvedTokens,
+      multiModeCollections: multiModeCollections.length > 0 ? multiModeCollections : undefined,
+    };
   }
 
   // No variables — styles only
@@ -595,6 +748,46 @@ export function generateTokensCss(snapshot: TokenSnapshot): string {
 
   const { modeStructure } = meta;
 
+  // ── Breakpoint media query blocks (appended regardless of theme structure) ──
+  function renderBreakpointBlocks(): string {
+    const bpLines: string[] = [];
+    for (let tier = 1; tier < BP_MAX_WIDTHS.length; tier++) {
+      const maxWidth = BP_MAX_WIDTHS[tier];
+      if (maxWidth === null) continue;
+
+      // Tokens that have a modeValues entry at this tier AND that tier differs from tier 0
+      const tierTokens = tokens.filter((t) => {
+        if (!t.modeValues) return false;
+        const base = t.modeValues[0];
+        const here = t.modeValues[tier];
+        return base && here && here.value !== base.value;
+      });
+      if (tierTokens.length === 0) continue;
+
+      const tierGrouped = new Map<TokenCategory, TokenEntry[]>();
+      for (const t of tierTokens) {
+        if (!tierGrouped.has(t.category)) tierGrouped.set(t.category, []);
+        tierGrouped.get(t.category)!.push(t);
+      }
+
+      bpLines.push(`@media (max-width: ${maxWidth}px) {`);
+      bpLines.push(`  :root {`);
+      for (const cat of CATEGORY_ORDER) {
+        const entries = tierGrouped.get(cat);
+        if (!entries?.length) continue;
+        bpLines.push(`    /* ${CATEGORY_LABEL[cat]} */`);
+        for (const t of entries) {
+          bpLines.push(`    ${t.cssVar}: ${t.modeValues![tier].value};`);
+        }
+        bpLines.push("");
+      }
+      bpLines.push(`  }`);
+      bpLines.push(`}`);
+      bpLines.push("");
+    }
+    return bpLines.join("\n");
+  }
+
   if (modeStructure === "both") {
     // Dark-only: tokens that have a different dark value
     const darkTokens = tokens.filter((t) => t.valueDark !== undefined);
@@ -613,6 +806,8 @@ export function generateTokensCss(snapshot: TokenSnapshot): string {
       `[data-theme="dark"] {`,
       renderGroup(darkGrouped, true),
       `}`,
+      ``,
+      renderBreakpointBlocks(),
     ].join("\n");
   }
 
@@ -621,13 +816,15 @@ export function generateTokensCss(snapshot: TokenSnapshot): string {
     `:root {`,
     renderGroup(grouped),
     `}`,
+    ``,
+    renderBreakpointBlocks(),
   ].join("\n");
 }
 
 // ── Markdown generator ─────────────────────────────────────────────────────────
 
 export function generateDesignMd(snapshot: TokenSnapshot): string {
-  const { meta, tokens, unresolvedTokens } = snapshot;
+  const { meta, tokens, unresolvedTokens, multiModeCollections } = snapshot;
   const date = new Date(meta.importedAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -664,6 +861,45 @@ export function generateDesignMd(snapshot: TokenSnapshot): string {
     return [header, ...rows].join("\n") + "\n";
   }
 
+  // ── Variable modes section ──────────────────────────────────────────────────
+  function modesSection(): string[] {
+    if (!multiModeCollections?.length) return [];
+    const rows = multiModeCollections.map((col) => {
+      const kindLabel =
+        col.kind === "theme"      ? "Theme (light/dark)" :
+        col.kind === "breakpoint" ? "Breakpoint"         : "Unknown";
+
+      // Build mode cells with breakpoint annotations for tier > 0
+      const modeCells = col.orderedModes.map((m, i) => {
+        if (col.kind !== "breakpoint") return m.name;
+        if (i === 0) return `${m.name} (default)`;
+        const maxW = BP_MAX_WIDTHS[i];
+        return maxW !== null ? `${m.name} (≤${maxW}px)` : m.name;
+      });
+
+      return `| ${col.collectionName} | ${kindLabel} | ${modeCells.join(" | ")} |`;
+    });
+
+    // Header columns — use widest row's count
+    const maxCols = Math.max(...multiModeCollections.map((c) => c.orderedModes.length));
+    const modeHeaders = Array.from({ length: maxCols }, (_, i) => `Mode ${i + 1}`).join(" | ");
+
+    return [
+      `## Variable modes`,
+      `All multi-mode collections detected in this Figma file:`,
+      ``,
+      `| Collection | Kind | ${modeHeaders} |`,
+      `|---|---|${Array.from({ length: maxCols }, () => "---").join("|")}|`,
+      ...rows,
+      ``,
+      `**Kind reference:**`,
+      `- **Theme** — modes represent color themes (light/dark); CSS uses \`[data-theme="dark"]\` selector`,
+      `- **Breakpoint** — modes represent viewport sizes; CSS uses \`@media (max-width: …)\` overrides in \`generated-tokens.css\``,
+      `- **Unknown** — modes could not be classified; documented here only, no CSS generated`,
+      ``,
+    ];
+  }
+
   const sections = [
     `# Design system`,
     `Generated from Figma · ${meta.figmaFile} · ${date}`,
@@ -678,6 +914,7 @@ export function generateDesignMd(snapshot: TokenSnapshot): string {
     `- ${counts.animation} animation tokens`,
     `- ${counts.other} other tokens`,
     ``,
+    ...modesSection(),
     `## Color tokens`,
     tableForCategory("colors"),
     `## Typography tokens`,
