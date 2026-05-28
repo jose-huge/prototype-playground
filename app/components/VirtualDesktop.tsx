@@ -149,7 +149,7 @@ export default function VirtualDesktop() {
           {/* Left: Apple logo (toggle), app name, menu items */}
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-300)" }}>
             <button
-              onClick={() => setView("playground")}
+              onClick={() => { setOpenSettingsOnMount(false); setView("playground"); }}
               title="Switch to Prototype Playground"
               style={{
                 background: "none",
