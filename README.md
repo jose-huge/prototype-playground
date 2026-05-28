@@ -1,16 +1,24 @@
 # Prototype Playground
-
 A blank starter for designers to build components from Figma using Claude Code.
 
 ---
 
 ## Quickstart
 
-**Mac:** Download and double-click `install.sh`
-**Windows:** Download and double-click `install.bat`
+**Mac** — paste this into Terminal (Cmd + Space → type Terminal → hit enter):
+```bash
+curl -fsSL https://raw.githubusercontent.com/jose-huge/prototype-playground/main/install.sh | bash
+```
+
+**Windows** — paste this into PowerShell:
+```powershell
+irm https://raw.githubusercontent.com/jose-huge/prototype-playground/main/install.ps1 | iex
+```
 
 The script installs everything and opens the playground automatically.
-For future updates run `update.sh` or `update.bat`.
+For future updates run `update.sh` (Mac) or `update.bat` (Windows) from the playground folder.
+
+Prefer to do it manually? [Download install.sh](install.sh) or [install.bat](install.bat) and double-click.
 
 ---
 
@@ -22,18 +30,18 @@ Prototype Playground connects your Figma file to Claude Code so you can build, p
 
 ## First time setup
 
-You'll need two things installed on your Mac before you start:
+You'll need two things installed before you start:
 
 - **Node.js** — download from [nodejs.org](https://nodejs.org) (click the LTS version)
 - **Claude Code** — follow the install guide at [claude.ai/code](https://claude.ai/code)
 
-If you're not sure whether you have these, open Terminal (press `Cmd + Space`, type `Terminal`, hit enter) and ask Claude Code — it will check for you.
+If you're not sure whether you have these, open Terminal and ask Claude Code — it will check for you.
 
 ---
 
-## Getting the playground
+## Manual setup
 
-You only do this once per project.
+Only needed if the quickstart script doesn't work.
 
 **Step 1 — Open Terminal**
 Press `Cmd + Space`, type `Terminal`, hit enter.
