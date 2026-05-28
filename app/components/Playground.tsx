@@ -1286,13 +1286,15 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               <DialogTitle>Settings</DialogTitle>
             ) : (
               <DialogTitle className="flex items-center gap-1.5">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => setSettingsLevel('l1')}
-                  className="-ml-0.5 p-1 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="Back to settings"
+                  className="-ml-1"
                 >
                   <ArrowLeft size={16} />
-                </button>
+                </Button>
                 Figma connection
               </DialogTitle>
             )}
