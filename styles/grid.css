@@ -1,0 +1,14 @@
+/* Grid system — adjust to match your Figma layout grid */
+:root {
+  --grid-xl-columns: 12;
+  --grid-xl-margin: 40px;
+  --grid-xl-gutter: 24px;
+
+  --grid-md-columns: 12;
+  --grid-md-margin: 40px;
+  --grid-md-gutter: 24px;
+
+  --grid-xs-columns: 4;
+  --grid-xs-margin: 24px;
+  --grid-xs-gutter: 24px;
+}

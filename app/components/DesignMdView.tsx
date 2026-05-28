@@ -30,12 +30,13 @@ const SpacingSection   = dynamic(() => import("./dsv/SpacingSection"  ).then((m)
 const RadiusSection    = dynamic(() => import("./dsv/RadiusSection"   ).then((m) => ({ default: m.RadiusSection    })), { ssr: false, loading: SectionSkeleton });
 const ShadowsSection   = dynamic(() => import("./dsv/ShadowsSection"  ).then((m) => ({ default: m.ShadowsSection   })), { ssr: false, loading: SectionSkeleton });
 const MotionSection    = dynamic(() => import("./dsv/MotionSection"   ).then((m) => ({ default: m.MotionSection    })), { ssr: false, loading: SectionSkeleton });
+const GridSection      = dynamic(() => import("./dsv/GridSection"     ).then((m) => ({ default: m.GridSection      })), { ssr: false, loading: SectionSkeleton });
 const AnimationSection = dynamic(() => import("./dsv/AnimationSection").then((m) => ({ default: m.AnimationSection  })), { ssr: false, loading: SectionSkeleton });
 const OtherSection     = dynamic(() => import("./dsv/OtherSection"    ).then((m) => ({ default: m.OtherSection     })), { ssr: false, loading: SectionSkeleton });
 
 // ── Section config ─────────────────────────────────────────────────────────────
 
-type SectionId = TokenCategory | "overview" | "schemes" | "motion";
+type SectionId = TokenCategory | "overview" | "schemes" | "motion" | "grid";
 
 const SECTIONS: Array<{ id: SectionId; label: string; alwaysShow?: boolean }> = [
   { id: "overview",   label: "Overview",   alwaysShow: true  },
@@ -46,6 +47,7 @@ const SECTIONS: Array<{ id: SectionId; label: string; alwaysShow?: boolean }> = 
   { id: "radius",     label: "Radius"     },
   { id: "shadows",    label: "Shadows"    },
   { id: "motion",     label: "Motion",     alwaysShow: true  },
+  { id: "grid",       label: "Grid",       alwaysShow: true  },
   { id: "animation",  label: "Animation"  },
   { id: "other",      label: "Other"      },
 ];
@@ -299,6 +301,13 @@ export default function DesignMdView({ isImporting = false }: Props) {
           <section ref={(el) => { sectionRefs.current["motion"] = el; }} className="pb-10">
             <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Motion</h5>
             <MotionSection />
+          </section>
+          <Separator className="mb-10" />
+
+          {/* Grid — always visible; editable, saved to localStorage + styles/grid.css */}
+          <section ref={(el) => { sectionRefs.current["grid"] = el; }} className="pb-10">
+            <h5 className="text-sm font-medium text-foreground" style={{ marginBottom: "24px" }}>Grid</h5>
+            <GridSection />
           </section>
           <Separator className="mb-10" />
 

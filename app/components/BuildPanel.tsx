@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { loadGrid, gridPromptBlock } from "@/lib/gridConfig";
 import {
   Clipboard,
   ClipboardCheck,
@@ -200,7 +201,8 @@ export default function BuildPanel({
       selection?.frame.parentName,
     );
     const headerInstruction = `Add this exact comment block at the very top of the output file, before any imports:\n\`\`\`\n${header}\n\`\`\``;
-    return [prompt.trim(), "", headerInstruction, "", "---", "", selection?.mcpContext ?? ""].join("\n");
+    const gridBlock = gridPromptBlock(loadGrid());
+    return [prompt.trim(), "", headerInstruction, "", "---", "", gridBlock, "", "---", "", selection?.mcpContext ?? ""].join("\n");
   };
 
   // ── Clipboard helper ─────────────────────────────────────────────────────────

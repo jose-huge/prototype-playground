@@ -5,6 +5,7 @@
 @import "../styles/typography.css";
 @import "../styles/spacing.css";
 @import "../styles/motion.css";
+@import "../styles/grid.css";
 
 /* ── Oreo focus ring ─────────────────────────────────────────────────────
    Visible on any background: white inner gap + black outer ring.
