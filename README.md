@@ -4,6 +4,8 @@ A blank starter for designers to build components from Figma using Claude Code.
 ---
 
 ## Quickstart
+The script installs everything and opens the playground automatically.
+For future updates run `update.sh` (Mac) or `update.bat` (Windows) from the playground folder.
 
 **Mac** — paste this into Terminal (Cmd + Space → type Terminal → hit enter):
 ```bash
@@ -14,9 +16,6 @@ curl -fsSL https://raw.githubusercontent.com/jose-huge/prototype-playground/main
 ```powershell
 irm https://raw.githubusercontent.com/jose-huge/prototype-playground/main/install.ps1 | iex
 ```
-
-The script installs everything and opens the playground automatically.
-For future updates run `update.sh` (Mac) or `update.bat` (Windows) from the playground folder.
 
 Prefer to do it manually? [Download install.sh](install.sh) or [install.bat](install.bat) and double-click.
 
