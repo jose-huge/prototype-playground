@@ -22,9 +22,9 @@ import {
   MousePointerClick,
   BookOpen,
   Plug,
-  Unplug,
   CheckCircle2,
   FileCode2,
+  ArrowLeft,
   // icons used for built-component auto-matching
   AlignLeft,
   Bell,
@@ -55,6 +55,7 @@ import DesignMdView from "./DesignMdView";
 import PlaygroundToolbar from "./PlaygroundToolbar";
 import { SchemeProvider, type SchemeName } from "./SchemeContext";
 import FigmaConfigPanel from "./FigmaConfigPanel";
+import { FigmaConnectionContent } from "./FigmaConnectionContent";
 import FramePicker, { type SelectedFrame } from "./FramePicker";
 import BuildPanel from "./BuildPanel";
 import { useFigmaConfig } from "@/hooks/useFigmaConfig";
@@ -427,6 +428,8 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [schemeOverride, setSchemeOverride] = useState<SchemeName | undefined>(undefined);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Which level of Settings is active: 'l1' = main settings, 'l2' = Figma connection
+  const [settingsLevel, setSettingsLevel] = useState<'l1' | 'l2'>('l1');
   const [figmaConfigOpen, setFigmaConfigOpen] = useState(false);
   const [isImportingDesignSystem, setIsImportingDesignSystem] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<SelectedFrame | null>(null);
@@ -600,8 +603,8 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     const handler = (e: Event) => {
       const item = (e as CustomEvent<string>).detail;
       if (item === "Settings") {
-        // Re-import / Open Settings — open the Figma config panel
-        setFigmaConfigOpen(true);
+        // Re-import / Figma config — open Settings directly at the Figma connection level
+        openSettings('l2');
       } else {
         // "View reference page" etc — navigate to that sidebar item
         setLocalItem(item);
@@ -682,6 +685,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     setAnimation(draftAnimation);
     localStorage.setItem("playground_animation", JSON.stringify(draftAnimation));
     setSettingsOpen(false);
+    setSettingsLevel('l1');
     setStackWarningOpen(false);
   };
 
@@ -705,11 +709,12 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     return `${fwLabels[fw] ?? fw} · ${aniPart}`;
   };
 
-  const openSettings = () => {
+  const openSettings = (level: 'l1' | 'l2' = 'l1') => {
     setDraftName(projectName);
     setDraftLogoSrc(logoSrc);
     setDraftFramework(framework);
     setDraftAnimation([...animation]);
+    setSettingsLevel(level);
     setSettingsOpen(true);
   };
 
@@ -1037,7 +1042,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
-                      <SidebarMenuButton className="gap-2.5" onClick={openSettings}>
+                      <SidebarMenuButton className="gap-2.5" onClick={() => openSettings()}>
                         <Settings size={16} />
                         <span>Settings</span>
                       </SidebarMenuButton>
@@ -1271,168 +1276,189 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
         </DialogContent>
       </Dialog>
 
-      {/* ── Settings modal ── */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+      {/* ── Settings modal (two-level) ── */}
+      <Dialog open={settingsOpen} onOpenChange={(v) => { if (!v) setSettingsLevel('l1'); setSettingsOpen(v); }}>
         <DialogContent className="pg-chrome">
+
+          {/* Header — title changes per level; L2 gets a back arrow */}
           <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
+            {settingsLevel === 'l1' ? (
+              <DialogTitle>Settings</DialogTitle>
+            ) : (
+              <DialogTitle className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setSettingsLevel('l1')}
+                  className="-ml-0.5 p-1 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Back to settings"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                Figma connection
+              </DialogTitle>
+            )}
           </DialogHeader>
 
-          <DialogBody className="gap-5">
-            {/* Project name */}
-            <Field>
-              <FieldLabel htmlFor="project-name">Project name</FieldLabel>
-              <Input
-                id="project-name"
-                value={draftName}
-                onChange={e => setDraftName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && saveSettings()}
-                placeholder={DEFAULT_PROJECT_NAME}
-                autoFocus
-              />
-            </Field>
-
-            {/* Logo upload */}
-            <Field>
-              <FieldLabel>Logo</FieldLabel>
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={e => e.preventDefault()}
-                onDrop={e => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files[0];
-                  if (file) handleLogoFile(file);
-                }}
-                className="h-20 flex items-center justify-center cursor-pointer rounded-lg border border-dashed border-border bg-muted p-3 transition-colors hover:border-foreground/40"
-              >
-                {draftLogoSrc ? (
-                  <img
-                    src={draftLogoSrc}
-                    alt="Logo preview"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                ) : (
-                  <span className="text-xs text-muted-foreground">No logo</span>
-                )}
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (file) handleLogoFile(file);
-                  e.target.value = "";
-                }}
-              />
-              <div className="flex items-center justify-between">
-                <FieldDescription>Click or drag to replace</FieldDescription>
-                {draftLogoSrc && draftLogoSrc !== DEFAULT_LOGO && (
-                  <button
-                    onClick={() => setDraftLogoSrc(DEFAULT_LOGO)}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 p-0 cursor-pointer"
-                  >
-                    Reset to default
-                  </button>
-                )}
-              </div>
-            </Field>
-
-            <Separator />
-
-            {/* Code output */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <FieldLabel>Code output</FieldLabel>
-                {(!framework && !animation) && (
-                  <FieldDescription className="italic">
-                    Set your stack before building your first component
-                  </FieldDescription>
-                )}
-              </div>
-              {/* Framework */}
+          {/* ── Level 1 — main settings ──────────────────────────────────── */}
+          {settingsLevel === 'l1' && (
+            <DialogBody className="gap-5">
+              {/* Project name */}
               <Field>
-                <FieldLabel htmlFor="output-framework">Output framework</FieldLabel>
-                <Select
-                  value={draftFramework}
-                  onValueChange={(v) => setDraftFramework(v as FrameworkKey)}
-                >
-                  <SelectTrigger id="output-framework" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FRAMEWORK_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FieldLabel htmlFor="project-name">Project name</FieldLabel>
+                <Input
+                  id="project-name"
+                  value={draftName}
+                  onChange={e => setDraftName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && saveSettings()}
+                  placeholder={DEFAULT_PROJECT_NAME}
+                  autoFocus
+                />
               </Field>
-              {/* Animation */}
+
+              {/* Logo upload */}
               <Field>
-                <FieldLabel>Animation library</FieldLabel>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {ANIMATION_OPTIONS.map((o) => {
-                    const active = draftAnimation.includes(o.value as AnimationKey);
-                    return (
-                      <button
-                        key={o.value}
-                        type="button"
-                        onClick={() => setDraftAnimation(toggleAnimation(draftAnimation, o.value as AnimationKey))}
-                        className={cn(
-                          "px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
-                          active
-                            ? "bg-accent text-accent-foreground border-accent"
-                            : "text-muted-foreground border-border hover:text-foreground hover:border-foreground/30"
-                        )}
-                      >
-                        {o.label}
-                      </button>
-                    );
-                  })}
+                <FieldLabel>Logo</FieldLabel>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files[0];
+                    if (file) handleLogoFile(file);
+                  }}
+                  className="h-20 flex items-center justify-center cursor-pointer rounded-lg border border-dashed border-border bg-muted p-3 transition-colors hover:border-foreground/40"
+                >
+                  {draftLogoSrc ? (
+                    <img src={draftLogoSrc} alt="Logo preview" className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No logo</span>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) handleLogoFile(file);
+                    e.target.value = "";
+                  }}
+                />
+                <div className="flex items-center justify-between">
+                  <FieldDescription>Click or drag to replace</FieldDescription>
+                  {draftLogoSrc && draftLogoSrc !== DEFAULT_LOGO && (
+                    <button
+                      onClick={() => setDraftLogoSrc(DEFAULT_LOGO)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 p-0 cursor-pointer"
+                    >
+                      Reset to default
+                    </button>
+                  )}
                 </div>
               </Field>
-            </div>
 
-            <Separator />
+              <Separator />
 
-            {/* Figma connection */}
-            <Field>
-              <FieldLabel>Figma</FieldLabel>
-              {isConnected && config ? (
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <CheckCircle2 size={14} className="shrink-0 text-green-500" />
-                    <span className="text-sm truncate">{config.fileName || config.fileKey}</span>
+              {/* Code output */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <FieldLabel>Code output</FieldLabel>
+                  {(!framework && !animation) && (
+                    <FieldDescription className="italic">
+                      Set your stack before building your first component
+                    </FieldDescription>
+                  )}
+                </div>
+                <Field>
+                  <FieldLabel htmlFor="output-framework">Output framework</FieldLabel>
+                  <Select value={draftFramework} onValueChange={(v) => setDraftFramework(v as FrameworkKey)}>
+                    <SelectTrigger id="output-framework" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FRAMEWORK_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel>Animation library</FieldLabel>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {ANIMATION_OPTIONS.map((o) => {
+                      const active = draftAnimation.includes(o.value as AnimationKey);
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => setDraftAnimation(toggleAnimation(draftAnimation, o.value as AnimationKey))}
+                          className={cn(
+                            "px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
+                            active
+                              ? "bg-accent text-accent-foreground border-accent"
+                              : "text-muted-foreground border-border hover:text-foreground hover:border-foreground/30"
+                          )}
+                        >
+                          {o.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 gap-1.5 text-muted-foreground hover:text-destructive"
-                    onClick={() => clearConfig()}
-                  >
-                    <Unplug size={13} />
-                    Disconnect
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  onClick={() => { setSettingsOpen(false); setFigmaConfigOpen(true); }}
-                >
-                  <Plug size={13} />
-                  Connect Figma file
-                </Button>
-              )}
-            </Field>
-          </DialogBody>
+                </Field>
+              </div>
 
+              <Separator />
+
+              {/* Figma connection row — clicking always opens Level 2 */}
+              <Field>
+                <FieldLabel>Figma</FieldLabel>
+                <button
+                  type="button"
+                  onClick={() => setSettingsLevel('l2')}
+                  className="w-full flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-left transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isConnected && config ? (
+                      <>
+                        <CheckCircle2 size={14} className="shrink-0 text-green-500" />
+                        <span className="text-sm truncate">{config.fileName || config.fileKey}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plug size={14} className="shrink-0 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Not connected</span>
+                      </>
+                    )}
+                  </div>
+                  <ChevronRight size={14} className="shrink-0 text-muted-foreground" />
+                </button>
+              </Field>
+            </DialogBody>
+          )}
+
+          {/* ── Level 2 — Figma connection ───────────────────────────────── */}
+          {settingsLevel === 'l2' && (
+            <DialogBody className="gap-5 flex-1 overflow-y-auto min-h-0">
+              <FigmaConnectionContent
+                onConnected={() => {}}
+                onImportingChange={setIsImportingDesignSystem}
+                builtCount={builtComponentsList.length}
+                onNavigate={(dest) => {
+                  setSettingsOpen(false);
+                  setSettingsLevel('l1');
+                  setLocalItem(dest);
+                  onNavigate("playground");
+                }}
+              />
+            </DialogBody>
+          )}
+
+          {/* Footer — same Cancel · Save at every level */}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSettingsOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setSettingsOpen(false); setSettingsLevel('l1'); }}>Cancel</Button>
             <Button onClick={saveSettings}>Save</Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
