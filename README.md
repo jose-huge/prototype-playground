@@ -4,6 +4,16 @@ A blank starter for designers to build components from Figma using Claude Code.
 
 ---
 
+## Quickstart
+
+**Mac:** Download and double-click `install.sh`
+**Windows:** Download and double-click `install.bat`
+
+The script installs everything and opens the playground automatically.
+For future updates run `update.sh` or `update.bat`.
+
+---
+
 ## What this is
 
 Prototype Playground connects your Figma file to Claude Code so you can build, preview, and iterate on components without writing code. When you're done, package the component for your dev team in one click.
