@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { lsGet, lsSet, lsRemove } from "@/lib/branchStorage";
 import { Dialog, DialogContent, DialogBody, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -166,7 +167,7 @@ const COMPONENTS_STORAGE_KEY = "playground_components";
 
 function loadStoredComponents(): ComponentRecord[] {
   try {
-    const raw = localStorage.getItem(COMPONENTS_STORAGE_KEY);
+    const raw = lsGet(COMPONENTS_STORAGE_KEY);
     if (!raw) return [];
     const stored = JSON.parse(raw) as ComponentRecord[];
     // Migrate 1: existing records without status default to 'done'
@@ -180,7 +181,7 @@ function loadStoredComponents(): ComponentRecord[] {
 }
 
 function saveStoredComponents(cs: ComponentRecord[]): void {
-  try { localStorage.setItem(COMPONENTS_STORAGE_KEY, JSON.stringify(cs)); } catch {}
+  try { lsSet(COMPONENTS_STORAGE_KEY, JSON.stringify(cs)); } catch {}
 }
 
 /**
@@ -498,14 +499,14 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
 
   // Load persisted settings from localStorage on mount
   useEffect(() => {
-    const savedName = localStorage.getItem("playground-project-name");
+    const savedName = lsGet("playground-project-name");
     if (savedName) { setProjectName(savedName); setDraftName(savedName); }
-    const savedLogo = localStorage.getItem("playground-logo");
+    const savedLogo = lsGet("playground-logo");
     if (savedLogo) { setLogoSrc(savedLogo); setDraftLogoSrc(savedLogo); }
-    const savedFw = localStorage.getItem("playground_framework") as FrameworkKey | null;
+    const savedFw = lsGet("playground_framework") as FrameworkKey | null;
     if (savedFw) { setFramework(savedFw); setDraftFramework(savedFw); }
     try {
-      const raw = localStorage.getItem("playground_animation");
+      const raw = lsGet("playground_animation");
       const parsed = raw ? (JSON.parse(raw) as AnimationKey[]) : ["css", "gsap"];
       const valid = (Array.isArray(parsed) && parsed.length > 0 ? parsed : ["css", "gsap"]) as AnimationKey[];
       setAnimation(valid);
@@ -514,10 +515,10 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
       // unparseable — fall back to css
     }
     // Original stack (set on first build)
-    const savedOrigFw = localStorage.getItem("playground_original_framework") as FrameworkKey | null;
+    const savedOrigFw = lsGet("playground_original_framework") as FrameworkKey | null;
     if (savedOrigFw) setOriginalFramework(savedOrigFw);
     try {
-      const rawOrig = localStorage.getItem("playground_original_animation");
+      const rawOrig = lsGet("playground_original_animation");
       if (rawOrig) setOriginalAnimation(JSON.parse(rawOrig) as AnimationKey[]);
     } catch { /* ignore */ }
   }, []);
@@ -667,23 +668,23 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     const name = draftName.trim() || DEFAULT_PROJECT_NAME;
     setProjectName(name);
     setDraftName(name);
-    localStorage.setItem("playground-project-name", name);
+    lsSet("playground-project-name", name);
     // Notify same-tab listeners (the `storage` event only fires cross-tab)
     window.dispatchEvent(new CustomEvent("playground:project-name", { detail: name }));
     setLogoSrc(draftLogoSrc);
     if (draftLogoSrc === DEFAULT_LOGO) {
-      localStorage.removeItem("playground-logo");
+      lsRemove("playground-logo");
     } else {
       try {
-        localStorage.setItem("playground-logo", draftLogoSrc);
+        lsSet("playground-logo", draftLogoSrc);
       } catch (e) {
         console.warn("Could not persist logo to localStorage (quota exceeded?):", e);
       }
     }
     setFramework(draftFramework);
-    localStorage.setItem("playground_framework", draftFramework);
+    lsSet("playground_framework", draftFramework);
     setAnimation(draftAnimation);
-    localStorage.setItem("playground_animation", JSON.stringify(draftAnimation));
+    lsSet("playground_animation", JSON.stringify(draftAnimation));
     setSettingsOpen(false);
     setSettingsLevel('l1');
     setStackWarningOpen(false);
@@ -1171,8 +1172,8 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
                 if (originalFramework === null) {
                   setOriginalFramework(framework);
                   setOriginalAnimation([...animation]);
-                  localStorage.setItem("playground_original_framework", framework);
-                  localStorage.setItem("playground_original_animation", JSON.stringify(animation));
+                  lsSet("playground_original_framework", framework);
+                  lsSet("playground_original_animation", JSON.stringify(animation));
                 }
               }}
               onVariationAdd={() => {

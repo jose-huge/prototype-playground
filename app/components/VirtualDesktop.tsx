@@ -5,6 +5,7 @@ import Playground from "./Playground";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { Monitor, Tablet, Smartphone } from "lucide-react";
+import { lsGet } from "@/lib/branchStorage";
 
 const MENU_BAR_H = 28;
 
@@ -53,7 +54,7 @@ export default function VirtualDesktop() {
   // Sync project name from localStorage (set by Playground Settings)
   useEffect(() => {
     const read = () => {
-      const saved = localStorage.getItem("playground-project-name");
+      const saved = lsGet("playground-project-name");
       setProjectName(saved || DEFAULT_PROJECT_NAME);
     };
     // Custom event: fired same-tab when Settings saves (storage event is cross-tab only)

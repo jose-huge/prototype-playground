@@ -18,11 +18,13 @@ export interface UseFigmaConfigReturn {
 }
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
+import { lsGet, lsSet, lsRemove } from "@/lib/branchStorage";
+
 const LS_KEY = "playground_figma_config";
 
 export function readLocalStorage(): FigmaConfig | null {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = lsGet(LS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as FigmaConfig;
     return parsed.token && parsed.fileKey ? parsed : null;
@@ -30,11 +32,11 @@ export function readLocalStorage(): FigmaConfig | null {
 }
 
 export function writeLocalStorage(config: FigmaConfig) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(config)); } catch { /* ok */ }
+  try { lsSet(LS_KEY, JSON.stringify(config)); } catch { /* ok */ }
 }
 
 export function clearLocalStorage() {
-  try { localStorage.removeItem(LS_KEY); } catch { /* ok */ }
+  try { lsRemove(LS_KEY); } catch { /* ok */ }
 }
 
 // ── Shared context (populated by FigmaConfigProvider) ─────────────────────────

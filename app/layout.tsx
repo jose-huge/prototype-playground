@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { execSync } from "child_process";
 import "./globals.css";
 import "./shadcn.css";
+
+// Read the current git branch at server-render time so the client can
+// namespace localStorage keys per project branch — no async needed.
+let gitBranch = "main";
+try {
+  gitBranch = execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf8" }).trim();
+} catch { /* not a git repo — fall back to "main" */ }
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +36,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Inject current git branch so client-side code can namespace localStorage keys */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__BRANCH__=${JSON.stringify(gitBranch)};`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

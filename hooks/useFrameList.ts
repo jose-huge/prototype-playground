@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getFrames, getThumbnails, type FigmaFrame, FigmaError } from "@/app/lib/figmaMcp";
+import { lsGet, lsSet, lsRemove } from "@/lib/branchStorage";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -68,11 +69,11 @@ function lsKey(fileKey: string) {
 
 function readLsThumbnails(fileKey: string): Record<string, string> | null {
   try {
-    const raw = localStorage.getItem(lsKey(fileKey));
+    const raw = lsGet(lsKey(fileKey));
     if (!raw) return null;
     const entry = JSON.parse(raw) as LsEntry;
     if (Date.now() - entry.fetchedAt > LS_TTL_MS) {
-      localStorage.removeItem(lsKey(fileKey));
+      lsRemove(lsKey(fileKey));
       return null;
     }
     return entry.thumbnails;
@@ -84,7 +85,7 @@ function readLsThumbnails(fileKey: string): Record<string, string> | null {
 function writeLsThumbnails(fileKey: string, thumbnails: Record<string, string>) {
   try {
     const entry: LsEntry = { thumbnails, fetchedAt: Date.now() };
-    localStorage.setItem(lsKey(fileKey), JSON.stringify(entry));
+    lsSet(lsKey(fileKey), JSON.stringify(entry));
   } catch {
     // localStorage full or unavailable — non-fatal
   }
@@ -113,7 +114,7 @@ export function useFrameList(
       // Invalidate caches if explicitly busted
       if (bustCache) {
         cache = null;
-        localStorage.removeItem(lsKey(fileKey));
+        lsRemove(lsKey(fileKey));
         setIsRefreshing(true);
       }
 
