@@ -42,7 +42,7 @@ export function gridPromptBlock(g: GridConfig): string {
     "Grid system:",
     `XL (≥1280px): ${g.xl.columns} columns, ${g.xl.margin}px margin, ${g.xl.gutter}px gutter`,
     `MD (≥768px):  ${g.md.columns} columns, ${g.md.margin}px margin, ${g.md.gutter}px gutter`,
-    `XS (<768px):  ${g.xs.columns} columns, ${g.xs.margin}px margin, ${g.xs.gutter}px gutter`,
+    `XS (<576px):  ${g.xs.columns} columns, ${g.xs.margin}px margin, ${g.xs.gutter}px gutter`,
     "",
     "Use these grid values for layout decisions. Never hardcode layout values that conflict with this grid.",
   ].join("\n");

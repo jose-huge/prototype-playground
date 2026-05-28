@@ -142,7 +142,7 @@ export function GridSection() {
   const BREAKPOINTS: Array<{ key: BpKey; label: string; range: string }> = [
     { key: "xl", label: "XL", range: "≥1280px" },
     { key: "md", label: "MD", range: "≥768px"  },
-    { key: "xs", label: "XS", range: "<768px"  },
+    { key: "xs", label: "XS", range: "<576px"  },
   ];
 
   return (
@@ -221,7 +221,7 @@ export function GridSection() {
       </div>
 
       <p className="text-[11px] text-muted-foreground/70">
-        These values are injected into every build prompt and saved to{" "}
+        These are default grid values — Figma import does not import grids. Adjust them once to match your Figma layout grid, then leave them. Values are injected into every build prompt and saved to{" "}
         <code className="font-mono">styles/grid.css</code>.
       </p>
 
