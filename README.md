@@ -4,8 +4,6 @@ A blank starter for designers to build components from Figma using Claude Code.
 ---
 
 ## Quickstart
-The script installs everything and opens the playground automatically.
-For future updates run `update.sh` (Mac) or `update.bat` (Windows) from the playground folder.
 
 **Mac** — paste this into Terminal (Cmd + Space → type Terminal → hit enter):
 ```bash
@@ -17,7 +15,21 @@ curl -fsSL https://raw.githubusercontent.com/jose-huge/prototype-playground/main
 irm https://raw.githubusercontent.com/jose-huge/prototype-playground/main/install.ps1 | iex
 ```
 
+The script installs everything and opens the playground automatically.
+For future updates run `update.sh` (Mac) or `update.bat` (Windows) from the playground folder.
+
 Prefer to do it manually? [Download install.sh](install.sh) or [install.bat](install.bat) and double-click.
+
+---
+
+## What you need before starting
+
+Two things need to be installed on your computer:
+
+- **Node.js** — download from [nodejs.org](https://nodejs.org) (click the LTS version)
+- **Claude Code** — follow the install guide at [claude.ai/code](https://claude.ai/code)
+
+The install script will check for these and open the download page automatically if either is missing.
 
 ---
 
@@ -27,107 +39,87 @@ Prototype Playground connects your Figma file to Claude Code so you can build, p
 
 ---
 
-## First time setup
+## Your first session
 
-You'll need two things installed before you start:
+After the playground opens in your browser, follow these steps to get everything connected and build your first component.
 
-- **Node.js** — download from [nodejs.org](https://nodejs.org) (click the LTS version)
-- **Claude Code** — follow the install guide at [claude.ai/code](https://claude.ai/code)
-
-If you're not sure whether you have these, open Terminal and ask Claude Code — it will check for you.
-
----
-
-## Manual setup
-
-Only needed if the quickstart script doesn't work.
-
-**Step 1 — Open Terminal**
-Press `Cmd + Space`, type `Terminal`, hit enter.
-
-**Step 2 — Go to your Desktop**
-```bash
-cd ~/Desktop
+### 1. Open Claude Code
+Open the Claude Code app. Click **Open folder** and navigate to:
 ```
-
-**Step 3 — Download the playground**
-```bash
-git clone https://github.com/jose-huge/prototype-playground.git
+Documents → prototype-playground
 ```
+This points Claude Code at the playground so it can read and write your components.
 
-**Step 4 — Go into the folder**
-```bash
-cd prototype-playground
-```
+### 2. Introduce Claude Code to the project
+In the Claude Code chat, paste this message:
+> "I'm working in Prototype Playground. Read the README and familiarise yourself with the project structure before we start building."
 
-**Step 5 — Install dependencies**
-```bash
-npm install
-```
-This takes about 30–60 seconds. You'll see a lot of text — that's normal.
+Claude Code will read the codebase and get up to speed. Wait for it to confirm before moving on.
 
-**Step 6 — Start it up**
-```bash
-npm run dev
-```
+### 3. Set up your project in the playground
+Go back to your browser at `localhost:3000`. Click **Settings** in the bottom left and:
+- Set your project name
+- Choose your output framework (React, Vue, etc.)
+- Choose your animation library
 
-**Step 7 — Open in your browser**
-Go to [http://localhost:3000](http://localhost:3000)
+### 4. Connect your Figma file
+Still in Settings, click **Figma connection** and:
+- Paste your Figma file URL
+- Paste your Figma personal access token (generate one at figma.com/settings → Personal access tokens)
+- Click **Connect**
 
-You should see the blank playground. If something goes wrong at any step, open Claude Code and paste the error — it will fix it for you.
+### 5. Import your design system
+Once connected, click **Import from Figma**. This pulls all your design tokens — colors, typography, spacing, radius, shadows, and motion — and generates your Design Variables page. Takes about 20 seconds.
 
----
+### 6. Browse your Figma frames
+Click **Browse** in the sidebar. Your Figma file's frames appear in a list. Click the one you want to build.
 
-## How it works
+### 7. Copy build context
+The build panel shows your selected frame and a prompt. Click **Copy build context** — this copies everything Claude Code needs: the prompt and your Figma frame data.
 
-1. **Connect your Figma file** — go to Settings, paste your Figma file URL and access token
-2. **Import your design system** — Settings → Import design system → generates tokens, design docs, and the Design Variables page automatically
-3. **Browse frames** — click Browse in the sidebar, pick a frame from your Figma file
-4. **Copy build context** — click the button to copy the prompt + Figma context
-5. **Paste into Claude Code** — Claude builds the component and it appears in the playground instantly
-6. **Refine** — prompt Claude to adjust until it matches the design
-7. **Add variations** — use "+ Add variation" in the toolbar for mobile or other versions
-8. **Package for dev** — when done, click "Package for dev" in the toolbar to download a zip with everything dev needs
+### 8. Paste into Claude Code
+Switch to Claude Code and paste. Claude builds the component and it appears in the playground preview automatically.
+
+### 9. Refine
+Review the component in the playground. If anything needs adjusting, tell Claude Code directly:
+> "Make the button full width on mobile"
+> "The heading font size is too large, match the Figma frame"
+> "Add a hover state to the card"
+
+Keep going until it matches the design.
+
+### 10. Add variations (optional)
+If the component looks significantly different on mobile or in another state, click **+ Add variation** in the toolbar. Name it, select the Figma frame for that variation, and copy build context again.
+
+### 11. Package for dev
+When the component is ready, click **Package for dev** in the toolbar. Review what's included and click **Download zip**. The zip contains the component file, any variations, design tokens, and a README for your dev team.
 
 ---
 
 ## Keeping your project separate from the template
 
-When you start a real project, create a content branch so your Figma content, tokens, and built components never get pushed back to the shared template:
+When you start a real project, create a content branch so your Figma content, tokens, and built components stay local and never affect the shared template:
 
-```bash
-git checkout -b content/your-project-name
-```
+Tell Claude Code:
+> "Create a content branch for my project called [your project name]"
 
-Work on this branch. Your content stays local and separate from the template.
-
-If you're not sure how to do this, tell Claude Code:
-> "Create a content branch for my project called [project name]"
+Work on this branch. Your content stays on your machine. The template stays clean for everyone else.
 
 ---
 
 ## Getting updates to the playground
 
-When the playground template gets improved, pull the latest changes into your project:
-
-```bash
-git checkout main
-git pull
-git checkout content/your-project-name
-git merge main
-```
-
-Or just tell Claude Code:
+When the playground gets improved, tell Claude Code:
 > "Pull the latest playground updates into my project"
 
 ---
 
 ## Warnings during npm install
 
-You may see messages like `deprecated`, `vulnerabilities`, or `packages looking for funding` during `npm install`. These are normal and won't affect anything. Ignore them.
+You may see messages like `deprecated`, `vulnerabilities`, or `packages looking for funding` during install. These are normal and won't affect anything. Ignore them.
 
 ---
 
-## Questions
+## Something went wrong?
 
-If anything breaks or you're not sure what to do, open Claude Code and describe what happened. It has full context of the playground and will walk you through the fix.
+Open Claude Code and describe what happened. It has full context of the playground and will walk you through the fix.
