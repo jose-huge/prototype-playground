@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { execSync } from "child_process";
+import { Suspense } from "react";
+import { ResetHandler } from "./components/ResetHandler";
 import "./globals.css";
 import "./shadcn.css";
 
@@ -44,7 +46,12 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Suspense fallback={null}>
+          <ResetHandler />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
