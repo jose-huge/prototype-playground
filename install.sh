@@ -44,6 +44,14 @@ echo ""
 echo "Installing dependencies (this takes about 30–60 seconds)..."
 npm install --prefix "$DEST"
 
+# ── Check port 3000 ───────────────────────────────────────────────────────────
+if lsof -ti tcp:3000 &> /dev/null; then
+  echo ""
+  echo "Port 3000 is already in use — another playground may already be running."
+  echo "Open http://localhost:3000?reset=true in your browser or close the other instance first."
+  exit 0
+fi
+
 # ── Start dev server ───────────────────────────────────────────────────────────
 echo ""
 echo "Starting Prototype Playground..."
@@ -52,7 +60,7 @@ nohup npm run dev --prefix "$DEST" > "$DEST/.dev.log" 2>&1 &
 # ── Open browser ──────────────────────────────────────────────────────────────
 echo "Waiting for server to start..."
 sleep 5
-open "http://localhost:3000"
+open "http://localhost:3000?reset=true"
 
 echo ""
 echo "✓ Prototype Playground is running at localhost:3000"
