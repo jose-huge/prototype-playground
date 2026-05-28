@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Eye, EyeOff, Loader2, Plug, CheckCircle2, AlertCircle,
-  Circle, Download, RotateCcw, X,
+  Circle, Download, RotateCcw,
 } from "lucide-react";
 import { Button }      from "@/components/ui/button";
 import { Input }       from "@/components/ui/input";
@@ -234,17 +234,18 @@ export function FigmaConnectionContent({
 
         <div className="flex items-center gap-3 pt-1">
           {isActivelyConnected ? (
-            <div className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full border border-border bg-muted text-sm">
-              <CheckCircle2 size={13} className="shrink-0 text-green-500" />
-              <span className="font-medium text-foreground">Connected</span>
-              {displayName && <span className="text-muted-foreground">{displayName}</span>}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 pl-2.5 pr-2.5 py-1 rounded-full border border-border bg-muted text-sm">
+                <CheckCircle2 size={13} className="shrink-0 text-green-500" />
+                <span className="font-medium text-foreground">Connected</span>
+                {displayName && <span className="text-muted-foreground">{displayName}</span>}
+              </div>
               <button
                 type="button"
                 onClick={handleDisconnect}
-                aria-label="Disconnect"
-                className="ml-0.5 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors"
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
-                <X size={12} />
+                Disconnect
               </button>
             </div>
           ) : (
