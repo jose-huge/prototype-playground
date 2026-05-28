@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Eye, EyeOff, Loader2, Plug, CheckCircle2, AlertCircle,
-  Circle, Download, ExternalLink, RotateCcw, X,
+  Circle, Download, RotateCcw, X,
 } from "lucide-react";
 import { Button }      from "@/components/ui/button";
 import { Input }       from "@/components/ui/input";
@@ -21,7 +21,7 @@ export interface FigmaConnectionContentProps {
   onConnected?:       () => void;
   onImportingChange?: (importing: boolean) => void;
   builtCount?:        number;
-  /** Called when the form wants to navigate somewhere (e.g. "View reference page"). */
+  /** Called when the form wants to navigate somewhere after an action. */
   onNavigate?:        (destination: string) => void;
 }
 
@@ -318,12 +318,6 @@ export function FigmaConnectionContent({
         )}
 
         {/* Post-import actions — appear below the checklist once done */}
-        {!importing && importDone && (
-          <Button size="sm" variant="outline" className="gap-1.5 self-start" onClick={() => onNavigate?.("Design Variables")}>
-            <ExternalLink size={13} />
-            View reference page
-          </Button>
-        )}
         {!importing && hasImportError && (
           <div className="flex gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={startImport}>
