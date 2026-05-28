@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Eye, EyeOff, Loader2, Plug, CheckCircle2, AlertCircle,
-  Circle, ExternalLink, RotateCcw, X,
+  Circle, Download, ExternalLink, RotateCcw, X,
 } from "lucide-react";
 import { Button }      from "@/components/ui/button";
 import { Input }       from "@/components/ui/input";
@@ -12,7 +12,6 @@ import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { validateConnection, extractFileKey, FigmaError } from "@/app/lib/figmaMcp";
 import { useFigmaConfig } from "@/hooks/useFigmaConfig";
 import { type ProgressEvent, type StepStatus } from "@/app/api/design-system/route";
-import DesignSystemImport from "./DesignSystemImport";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -22,11 +21,20 @@ export interface FigmaConnectionContentProps {
   onConnected?:       () => void;
   onImportingChange?: (importing: boolean) => void;
   builtCount?:        number;
-  /** Called when the form wants to navigate somewhere after an action (e.g. "View reference page"). */
+  /** Called when the form wants to navigate somewhere (e.g. "View reference page"). */
   onNavigate?:        (destination: string) => void;
 }
 
-// ── Step icon ──────────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function formatLastImport(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "short", day: "numeric", year: "numeric",
+      hour: "numeric", minute: "2-digit",
+    });
+  } catch { return iso; }
+}
 
 function StepIcon({ status }: { status: StepStatus }) {
   if (status === "done")    return <CheckCircle2 size={14} className="text-green-500 shrink-0" />;
@@ -36,9 +44,8 @@ function StepIcon({ status }: { status: StepStatus }) {
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
-// Renders the Figma connection form content without any Dialog or footer wrapper.
-// Manages its own connection + import state. Designed to be embedded inside a
-// parent dialog that provides its own header/footer (e.g. the Settings dialog).
+// Single-view form: connection fields always visible, import checklist expands
+// inline below the Import button as steps arrive — no content replacement.
 
 export function FigmaConnectionContent({
   onConnected,
@@ -57,12 +64,11 @@ export function FigmaConnectionContent({
   const [connectedName, setConnectedName] = useState<string | null>(null);
 
   // ── Import state ───────────────────────────────────────────────────────────
-  const [subView,     setSubView]     = useState<"setup" | "importing">("setup");
-  const [steps,       setSteps]       = useState<ProgressEvent[]>([]);
-  const [importing,   setImporting]   = useState(false);
-  const [importDone,  setImportDone]  = useState(false);
-  const [fatalError,  setFatalError]  = useState<string | null>(null);
-  const [lastImport,  setLastImport]  = useState<string | null>(null);
+  const [steps,      setSteps]      = useState<ProgressEvent[]>([]);
+  const [importing,  setImporting]  = useState(false);
+  const [importDone, setImportDone] = useState(false);
+  const [fatalError, setFatalError] = useState<string | null>(null);
+  const [lastImport, setLastImport] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -72,7 +78,7 @@ export function FigmaConnectionContent({
       .catch(() => {});
   }, []);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // ── Connect / Disconnect ───────────────────────────────────────────────────
   const handleConnect = async () => {
     setConnectStatus("connecting");
     setErrorMsg(null);
@@ -113,8 +119,8 @@ export function FigmaConnectionContent({
     setConnectedName(null);
   };
 
+  // ── Import ─────────────────────────────────────────────────────────────────
   const startImport = async () => {
-    setSubView("importing");
     setSteps([]);
     setImporting(true);
     onImportingChange?.(true);
@@ -169,160 +175,182 @@ export function FigmaConnectionContent({
   };
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const isConnecting      = connectStatus === "connecting";
-  const canConnect        = !!fileUrl.trim() && !!token.trim() && !isConnecting;
-  const displayName       = connectedName ?? config?.fileName;
-  const hasImportError    = steps.some((s) => s.status === "error") || !!fatalError;
-  const savedFileUrl      = config?.fileKey ? `https://www.figma.com/design/${config.fileKey}/` : "";
-  const fieldsMatchSaved  = fileUrl.trim() === savedFileUrl && token.trim() === (config?.token ?? "");
+  const isConnecting        = connectStatus === "connecting";
+  const canConnect          = !!fileUrl.trim() && !!token.trim() && !isConnecting;
+  const displayName         = connectedName ?? config?.fileName;
+  const hasImportError      = steps.some((s) => s.status === "error") || !!fatalError;
+  const savedFileUrl        = config?.fileKey ? `https://www.figma.com/design/${config.fileKey}/` : "";
+  const fieldsMatchSaved    = fileUrl.trim() === savedFileUrl && token.trim() === (config?.token ?? "");
   const isActivelyConnected = connectStatus === "success" || (isConnected && fieldsMatchSaved && connectStatus !== "error");
+  const canImport           = (isConnected || connectStatus === "success") && !importing;
 
-  // ── Setup sub-view ────────────────────────────────────────────────────────
-  if (subView === "setup") {
-    return (
-      <div className="flex flex-col gap-5">
-        <Field>
-          <FieldLabel htmlFor="figma-file-url-l2">File URL</FieldLabel>
-          <Input
-            id="figma-file-url-l2"
-            type="url"
-            placeholder="https://www.figma.com/design/…"
-            value={fileUrl}
-            onChange={(e) => { setFileUrl(e.target.value); setConnectStatus("idle"); setErrorMsg(null); setConnectedName(null); }}
-            disabled={isConnecting}
-          />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="figma-token-l2">Personal access token</FieldLabel>
-          <div className="relative">
-            <Input
-              id="figma-token-l2"
-              type={showToken ? "text" : "password"}
-              placeholder="figd_…"
-              value={token}
-              onChange={(e) => { setToken(e.target.value); setConnectStatus("idle"); setErrorMsg(null); setConnectedName(null); }}
-              disabled={isConnecting}
-              className="pr-9"
-            />
-            <button
-              type="button"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowToken((v) => !v)}
-              aria-label={showToken ? "Hide token" : "Show token"}
-              tabIndex={-1}
-            >
-              {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          </div>
-          <FieldDescription>
-            Generate at{" "}
-            <a href="https://www.figma.com/settings" target="_blank" rel="noopener noreferrer">
-              figma.com/settings
-            </a>
-            {" "}→ Personal access tokens
-          </FieldDescription>
-
-          <div className="flex items-center gap-3 pt-1">
-            {isActivelyConnected ? (
-              <div className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full border border-border bg-muted text-sm">
-                <CheckCircle2 size={13} className="shrink-0 text-green-500" />
-                <span className="font-medium text-foreground">Connected</span>
-                {displayName && <span className="text-muted-foreground">{displayName}</span>}
-                <button
-                  type="button"
-                  onClick={handleDisconnect}
-                  aria-label="Disconnect"
-                  className="ml-0.5 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            ) : (
-              <Button
-                size="sm"
-                onClick={handleConnect}
-                disabled={!canConnect}
-                className="gap-1.5"
-              >
-                {isConnecting
-                  ? <><Loader2 size={13} className="animate-spin" />Connecting…</>
-                  : <><Plug size={13} />Connect</>
-                }
-              </Button>
-            )}
-
-            {connectStatus === "error" && errorMsg && (
-              <span className="flex items-center gap-1.5 text-sm text-destructive">
-                <AlertCircle size={13} />
-                {errorMsg}
-              </span>
-            )}
-          </div>
-        </Field>
-
-        <Separator />
-
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium leading-none">Design system</p>
-          <DesignSystemImport
-            isConnected={isConnected || connectStatus === "success"}
-            builtCount={builtCount}
-            lastImport={lastImport}
-            onStartImport={startImport}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // ── Import sub-view ───────────────────────────────────────────────────────
+  // ── Single view — connection fields always visible ─────────────────────────
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5">
-        {steps.map((s) => (
-          <div key={s.step} className="flex items-start gap-2.5">
-            <div className="mt-0.5"><StepIcon status={s.status} /></div>
-            <div className="flex flex-col min-w-0">
-              <span className={`text-sm leading-tight ${
-                s.status === "error"   ? "text-destructive" :
-                s.status === "running" ? "text-foreground"  :
-                s.status === "done"    ? "text-foreground"  :
-                "text-muted-foreground"
-              }`}>
-                {s.label}
-                {s.detail && <span className="text-muted-foreground font-normal"> ({s.detail})</span>}
-              </span>
-              {s.error && <span className="text-xs text-destructive mt-0.5">{s.error}</span>}
+    <div className="flex flex-col gap-5">
+
+      {/* File URL */}
+      <Field>
+        <FieldLabel htmlFor="figma-file-url-l2">File URL</FieldLabel>
+        <Input
+          id="figma-file-url-l2"
+          type="url"
+          placeholder="https://www.figma.com/design/…"
+          value={fileUrl}
+          onChange={(e) => { setFileUrl(e.target.value); setConnectStatus("idle"); setErrorMsg(null); setConnectedName(null); }}
+          disabled={isConnecting}
+        />
+      </Field>
+
+      {/* Token + connect */}
+      <Field>
+        <FieldLabel htmlFor="figma-token-l2">Personal access token</FieldLabel>
+        <div className="relative">
+          <Input
+            id="figma-token-l2"
+            type={showToken ? "text" : "password"}
+            placeholder="figd_…"
+            value={token}
+            onChange={(e) => { setToken(e.target.value); setConnectStatus("idle"); setErrorMsg(null); setConnectedName(null); }}
+            disabled={isConnecting}
+            className="pr-9"
+          />
+          <button
+            type="button"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setShowToken((v) => !v)}
+            aria-label={showToken ? "Hide token" : "Show token"}
+            tabIndex={-1}
+          >
+            {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
+        <FieldDescription>
+          Generate at{" "}
+          <a href="https://www.figma.com/settings" target="_blank" rel="noopener noreferrer">
+            figma.com/settings
+          </a>
+          {" "}→ Personal access tokens
+        </FieldDescription>
+
+        <div className="flex items-center gap-3 pt-1">
+          {isActivelyConnected ? (
+            <div className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full border border-border bg-muted text-sm">
+              <CheckCircle2 size={13} className="shrink-0 text-green-500" />
+              <span className="font-medium text-foreground">Connected</span>
+              {displayName && <span className="text-muted-foreground">{displayName}</span>}
+              <button
+                type="button"
+                onClick={handleDisconnect}
+                aria-label="Disconnect"
+                className="ml-0.5 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors"
+              >
+                <X size={12} />
+              </button>
             </div>
-          </div>
-        ))}
-        {fatalError && (
-          <div className="flex items-start gap-2.5 mt-1">
-            <AlertCircle size={14} className="text-destructive shrink-0 mt-0.5" />
-            <span className="text-sm text-destructive">{fatalError}</span>
+          ) : (
+            <Button size="sm" onClick={handleConnect} disabled={!canConnect} className="gap-1.5">
+              {isConnecting
+                ? <><Loader2 size={13} className="animate-spin" />Connecting…</>
+                : <><Plug size={13} />Connect</>
+              }
+            </Button>
+          )}
+          {connectStatus === "error" && errorMsg && (
+            <span className="flex items-center gap-1.5 text-sm text-destructive">
+              <AlertCircle size={13} />
+              {errorMsg}
+            </span>
+          )}
+        </div>
+      </Field>
+
+      <Separator />
+
+      {/* Design system — import button + inline checklist growth */}
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium leading-none">Design system</p>
+
+        {/* Import button row */}
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            size="sm"
+            onClick={startImport}
+            disabled={!canImport}
+            className="gap-1.5"
+          >
+            {importing
+              ? <><Loader2 size={13} className="animate-spin" />Importing…</>
+              : <><Download size={13} />Import from Figma</>
+            }
+          </Button>
+          <span className="text-xs text-muted-foreground shrink-0">
+            {lastImport ? `Last imported: ${formatLastImport(lastImport)}` : "Last imported: never"}
+          </span>
+        </div>
+
+        {/* Checklist — grows in place as steps stream in */}
+        {steps.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            {steps.map((s) => (
+              <div key={s.step} className="flex items-start gap-2.5">
+                <div className="mt-0.5"><StepIcon status={s.status} /></div>
+                <div className="flex flex-col min-w-0">
+                  <span className={`text-sm leading-tight ${
+                    s.status === "error"   ? "text-destructive" :
+                    s.status === "running" ? "text-foreground"  :
+                    s.status === "done"    ? "text-foreground"  :
+                    "text-muted-foreground"
+                  }`}>
+                    {s.label}
+                    {s.detail && <span className="text-muted-foreground font-normal"> ({s.detail})</span>}
+                  </span>
+                  {s.error && <span className="text-xs text-destructive mt-0.5">{s.error}</span>}
+                </div>
+              </div>
+            ))}
+            {fatalError && (
+              <div className="flex items-start gap-2.5">
+                <AlertCircle size={14} className="text-destructive shrink-0 mt-0.5" />
+                <span className="text-sm text-destructive">{fatalError}</span>
+              </div>
+            )}
           </div>
         )}
-      </div>
 
-      {/* Inline actions shown after import completes — footer remains Cancel · Save */}
-      {!importing && importDone && (
-        <div className="flex gap-2 pt-2">
-          <Button size="sm" className="gap-1.5" onClick={() => onNavigate?.("Design Variables")}>
+        {/* Post-import actions — appear below the checklist once done */}
+        {!importing && importDone && (
+          <Button size="sm" variant="outline" className="gap-1.5 self-start" onClick={() => onNavigate?.("Design Variables")}>
             <ExternalLink size={13} />
             View reference page
           </Button>
-        </div>
-      )}
-      {!importing && hasImportError && (
-        <div className="flex gap-2 pt-2">
-          <Button size="sm" variant="outline" onClick={() => setSubView("setup")}>Back</Button>
-          <Button size="sm" className="gap-1.5" onClick={startImport}>
-            <RotateCcw size={13} />
-            Retry
-          </Button>
-        </div>
-      )}
+        )}
+        {!importing && hasImportError && (
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={startImport}>
+              <RotateCcw size={13} />
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Context copy — only when no checklist is showing */}
+        {steps.length === 0 && !isConnected && connectStatus !== "success" && (
+          <p className="text-xs text-muted-foreground">
+            Connect a Figma file above to enable import.
+          </p>
+        )}
+        {steps.length === 0 && canImport && !lastImport && (
+          <p className="text-xs text-muted-foreground">
+            Once imported, tokens.css, design.md, and the reference page will be generated automatically.
+          </p>
+        )}
+        {steps.length === 0 && canImport && lastImport && builtCount > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Re-importing will update tokens.css. Already-built components will not be changed.
+          </p>
+        )}
+      </div>
+
     </div>
   );
 }
