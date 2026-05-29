@@ -26,7 +26,7 @@ When building a new component for the playground, files MUST go here:
 - Use a named export: `export function ComponentName(...)`
 - Do NOT use `export default`
 - Export the color scheme: `export const defaultScheme = "{scheme-name}" as const;`
-  Set the scheme to match the Figma frame (e.g. `"white"`, `"harvest-light"`, `"dark"`)
+  Set the scheme to match the Figma frame (e.g. `"light"`, `"dark"`)
 
 **Color scheme:**
 - Do NOT put `data-scheme` on the component's root element

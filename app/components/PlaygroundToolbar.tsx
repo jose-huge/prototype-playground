@@ -20,17 +20,8 @@ import { Button } from "@/components/ui/button";
 
 const SCHEME_LABELS: Record<SchemeName | "default", string> = {
   default: "Default",
-  white: "White",
-  "harvest-light": "Harvest Light",
-  "harvest-dark": "Harvest Dark",
-  "sage-light": "Sage Light",
-  "sage-dark": "Sage Dark",
-  "sky-light": "Sky Light",
-  "sky-dark": "Sky Dark",
-  "rose-light": "Rose Light",
-  "rose-dark": "Rose Dark",
-  "noir-light": "Noir Light",
-  "noir-dark": "Noir Dark",
+  light: "Light",
+  dark: "Dark",
 };
 
 export type ToolbarOption = { value: string; label: string };

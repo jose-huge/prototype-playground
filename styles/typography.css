@@ -11,7 +11,7 @@
  *   Tablet    800–1000px
  *   Desktop ≥ 1440px  (clamp upper bound)
  *
- * Source: Figma /Typography page.
+ * Source: imported design system (typography).
  */
 
 :root {
@@ -140,24 +140,24 @@
 /* ─── Element defaults ──────────────────────────────────── */
 html { font-family: var(--font-sans); color: var(--color-fg); }
 
-h1, .cp-h1 { font: var(--type-h1); letter-spacing: var(--tracking-h1); margin: 0; }
-h2, .cp-h2 { font: var(--type-h2); letter-spacing: var(--tracking-h2); margin: 0; }
-h3, .cp-h3 { font: var(--type-h3); letter-spacing: var(--tracking-h3); margin: 0; }
-h4, .cp-h4 { font: var(--type-h4); letter-spacing: var(--tracking-h4); margin: 0; }
-h5, .cp-h5 { font: var(--type-h5); letter-spacing: var(--tracking-h5); margin: 0; }
-h6, .cp-h6 { font: var(--type-h6); letter-spacing: var(--tracking-h6); margin: 0; }
+h1, .pg-h1 { font: var(--type-h1); letter-spacing: var(--tracking-h1); margin: 0; }
+h2, .pg-h2 { font: var(--type-h2); letter-spacing: var(--tracking-h2); margin: 0; }
+h3, .pg-h3 { font: var(--type-h3); letter-spacing: var(--tracking-h3); margin: 0; }
+h4, .pg-h4 { font: var(--type-h4); letter-spacing: var(--tracking-h4); margin: 0; }
+h5, .pg-h5 { font: var(--type-h5); letter-spacing: var(--tracking-h5); margin: 0; }
+h6, .pg-h6 { font: var(--type-h6); letter-spacing: var(--tracking-h6); margin: 0; }
 
-.cp-display-m { font: var(--type-display-m); letter-spacing: var(--tracking-display); margin: 0; }
-.cp-display-s { font: var(--type-display-s); letter-spacing: var(--tracking-display); margin: 0; }
-.cp-display-2 { font: var(--type-display-2); letter-spacing: var(--tracking-display); margin: 0; }
+.pg-display-m { font: var(--type-display-m); letter-spacing: var(--tracking-display); margin: 0; }
+.pg-display-s { font: var(--type-display-s); letter-spacing: var(--tracking-display); margin: 0; }
+.pg-display-2 { font: var(--type-display-2); letter-spacing: var(--tracking-display); margin: 0; }
 
-p, .cp-text     { font: var(--type-text-base); margin: 0; }
-.cp-text-medium { font: var(--type-text-medium); }
-.cp-text-small  { font: var(--type-text-small); }
-.cp-text-legal  { font: var(--type-text-legal); }
+p, .pg-text     { font: var(--type-text-base); margin: 0; }
+.pg-text-medium { font: var(--type-text-medium); }
+.pg-text-small  { font: var(--type-text-small); }
+.pg-text-legal  { font: var(--type-text-legal); }
 
-.cp-tagline-l   { font: var(--type-tagline-l); letter-spacing: var(--ls-wide); text-transform: uppercase; }
-.cp-tagline-s   { font: var(--type-tagline-s); letter-spacing: var(--ls-wide); text-transform: uppercase; }
+.pg-tagline-l   { font: var(--type-tagline-l); letter-spacing: var(--ls-wide); text-transform: uppercase; }
+.pg-tagline-s   { font: var(--type-tagline-s); letter-spacing: var(--ls-wide); text-transform: uppercase; }
 
 /* ─── Product / UI chrome heading scale ─────────────────────
  * Apply .pg-chrome to any product-UI wrapper to:
@@ -201,12 +201,12 @@ p, .cp-text     { font: var(--type-text-base); margin: 0; }
   --fs-h6-fluid:        var(--fs-22);
 }
 
-.pg-chrome h1, .pg-chrome .cp-h1 { font-size: 1.25rem;   font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
-.pg-chrome h2, .pg-chrome .cp-h2 { font-size: 1.125rem;  font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
-.pg-chrome h3, .pg-chrome .cp-h3 { font-size: 1rem;      font-weight: 500; line-height: 1.3; letter-spacing: 0; }
-.pg-chrome h4, .pg-chrome .cp-h4 { font-size: 0.875rem;  font-weight: 500; line-height: 1.3; letter-spacing: 0; }
-.pg-chrome h5, .pg-chrome .cp-h5 { font-size: 0.8125rem; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
-.pg-chrome h6, .pg-chrome .cp-h6 { font-size: 0.75rem;   font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+.pg-chrome h1, .pg-chrome .pg-h1 { font-size: 1.25rem;   font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+.pg-chrome h2, .pg-chrome .pg-h2 { font-size: 1.125rem;  font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+.pg-chrome h3, .pg-chrome .pg-h3 { font-size: 1rem;      font-weight: 500; line-height: 1.3; letter-spacing: 0; }
+.pg-chrome h4, .pg-chrome .pg-h4 { font-size: 0.875rem;  font-weight: 500; line-height: 1.3; letter-spacing: 0; }
+.pg-chrome h5, .pg-chrome .pg-h5 { font-size: 0.8125rem; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+.pg-chrome h6, .pg-chrome .pg-h6 { font-size: 0.75rem;   font-weight: 500; line-height: 1.4; letter-spacing: 0; }
 
 /* ─────────────────────────────────────────────────────────── */
 /* Per-breakpoint static overrides                              */
@@ -216,25 +216,25 @@ p, .cp-text     { font: var(--type-text-base); margin: 0; }
 
 /* TABLET — 800–1000px (midpoint between mobile + desktop) */
 @container pg-root (min-width: 800px) and (max-width: 1199px) {
-  h1, .cp-h1 { font: var(--fw-regular)  var(--fs-58)/var(--lh-tight)  var(--font-sans); }
-  h2, .cp-h2 { font: var(--fw-regular)  var(--fs-46)/var(--lh-tight)  var(--font-sans); }
-  h3, .cp-h3 { font: var(--fw-regular)  var(--fs-38)/var(--lh-tight)  var(--font-sans); }
-  h4, .cp-h4 { font: var(--fw-regular) var(--fs-32)/var(--lh-tight)  var(--font-sans); }
-  h5, .cp-h5 { font: var(--fw-regular) var(--fs-26)/var(--lh-snug)   var(--font-sans); }
-  h6, .cp-h6 { font: var(--fw-regular) var(--fs-22)/var(--lh-normal) var(--font-sans); }
-  .cp-display-m { font: var(--fw-light) var(--fs-72)/var(--lh-tight) var(--font-sans); }
-  .cp-display-s { font: var(--fw-light) var(--fs-66)/var(--lh-tight) var(--font-sans); }
-  .cp-display-2 { font: var(--fw-light) var(--fs-110)/var(--lh-flat) var(--font-sans); }
+  h1, .pg-h1 { font: var(--fw-regular)  var(--fs-58)/var(--lh-tight)  var(--font-sans); }
+  h2, .pg-h2 { font: var(--fw-regular)  var(--fs-46)/var(--lh-tight)  var(--font-sans); }
+  h3, .pg-h3 { font: var(--fw-regular)  var(--fs-38)/var(--lh-tight)  var(--font-sans); }
+  h4, .pg-h4 { font: var(--fw-regular) var(--fs-32)/var(--lh-tight)  var(--font-sans); }
+  h5, .pg-h5 { font: var(--fw-regular) var(--fs-26)/var(--lh-snug)   var(--font-sans); }
+  h6, .pg-h6 { font: var(--fw-regular) var(--fs-22)/var(--lh-normal) var(--font-sans); }
+  .pg-display-m { font: var(--fw-light) var(--fs-72)/var(--lh-tight) var(--font-sans); }
+  .pg-display-s { font: var(--fw-light) var(--fs-66)/var(--lh-tight) var(--font-sans); }
+  .pg-display-2 { font: var(--fw-light) var(--fs-110)/var(--lh-flat) var(--font-sans); }
 }
 
 /* MOBILE — ≤ 768px */
 @container pg-root (max-width: 768px) {
-  h1, .cp-h1 { font: var(--fw-regular)  var(--fs-44)/var(--lh-tight)  var(--font-sans); }
-  h2, .cp-h2 { font: var(--fw-regular)  var(--fs-40)/var(--lh-tight)  var(--font-sans); }
-  h3, .cp-h3 { font: var(--fw-regular)  var(--fs-32)/var(--lh-tight)  var(--font-sans); }
-  h4, .cp-h4 { font: var(--fw-regular)  var(--fs-28)/var(--lh-tight)  var(--font-sans); }
-  h5, .cp-h5 { font: var(--fw-regular)  var(--fs-22)/var(--lh-snug)   var(--font-sans); }
-  h6, .cp-h6 { font: var(--fw-regular)  var(--fs-18)/var(--lh-normal) var(--font-sans); }
-  .cp-display-m, .cp-display-s { font: var(--fw-regular) var(--fs-44)/var(--lh-tight) var(--font-sans); }
-  .cp-display-2               { font: var(--fw-regular) var(--fs-100)/var(--lh-flat) var(--font-sans); }
+  h1, .pg-h1 { font: var(--fw-regular)  var(--fs-44)/var(--lh-tight)  var(--font-sans); }
+  h2, .pg-h2 { font: var(--fw-regular)  var(--fs-40)/var(--lh-tight)  var(--font-sans); }
+  h3, .pg-h3 { font: var(--fw-regular)  var(--fs-32)/var(--lh-tight)  var(--font-sans); }
+  h4, .pg-h4 { font: var(--fw-regular)  var(--fs-28)/var(--lh-tight)  var(--font-sans); }
+  h5, .pg-h5 { font: var(--fw-regular)  var(--fs-22)/var(--lh-snug)   var(--font-sans); }
+  h6, .pg-h6 { font: var(--fw-regular)  var(--fs-18)/var(--lh-normal) var(--font-sans); }
+  .pg-display-m, .pg-display-s { font: var(--fw-regular) var(--fs-44)/var(--lh-tight) var(--font-sans); }
+  .pg-display-2               { font: var(--fw-regular) var(--fs-100)/var(--lh-flat) var(--font-sans); }
 }

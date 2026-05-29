@@ -3,17 +3,8 @@
 import { createContext, useContext } from "react";
 
 export const SCHEME_NAMES = [
-  "white",
-  "harvest-light",
-  "harvest-dark",
-  "sage-light",
-  "sage-dark",
-  "sky-light",
-  "sky-dark",
-  "rose-light",
-  "rose-dark",
-  "noir-light",
-  "noir-dark",
+  "light",
+  "dark",
 ] as const;
 
 export type SchemeName = (typeof SCHEME_NAMES)[number];

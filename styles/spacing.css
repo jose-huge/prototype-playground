@@ -9,7 +9,7 @@
  *   Tablet    800–1199px
  *   Desktop ≥ 1200px (locked at 1440px for clamp upper bound)
  *
- * Source: Figma /Radius, /Shadows, /Grid pages.
+ * Source: imported design system (radius, shadows, grid).
  */
 
 :root {
@@ -192,10 +192,10 @@
   --modal-image-ratio:    604 / 340;
 
   /* ─── Semantic — Hero shape ──────────────────────────────
-   * Hero block height matches Figma /HP-Hero across the three
-   * sizes: XL 1024 · MD 800 · XS 700. Fluid value scales smoothly
-   * between the mobile and desktop bounds; the per-breakpoint
-   * primitives stay available for static layouts.
+   * Hero block height across the three sizes: XL 1024 · MD 800 ·
+   * XS 700. Fluid value scales smoothly between the mobile and
+   * desktop bounds; the per-breakpoint primitives stay available
+   * for static layouts.
    * ──────────────────────────────────────────────────────── */
   --hero-h-desktop:      1024px;
   --hero-h-tablet:       800px;
@@ -208,7 +208,7 @@
 
   /* ─── Semantic — LP Hero shape ───────────────────────────
    * Landing-page hero: two-column, bottom-anchored editorial.
-   * Per Figma /LP-Hero — sizes XL 1024 · MD 1024 · XS 700.
+   * Sizes XL 1024 · MD 1024 · XS 700.
    * Inner container has an 8px radius; padding is generous and
    * scales by breakpoint. Heading type is display-m (92px); the
    * description column is held to ~440px so it never out-runs
@@ -277,11 +277,10 @@
 
   /* ─── Semantic — Footer shape ───────────────────────────
    * Site footer organism. Inner content max-width matches the
-   * 1440px page lockup (Figma /Footer XL). Per-breakpoint
-   * vertical rhythm: a generous brand→columns gap (64) and a
-   * larger columns→rule gap (80) on desktop, both compress on
-   * mobile. The "pathways" sunset band has its own min-height
-   * scale (XL 500 · MD 420 · XS 360 per Figma).
+   * 1440px page lockup. Per-breakpoint vertical rhythm: a
+   * generous brand→columns gap (64) and a larger columns→rule
+   * gap (80) on desktop, both compress on mobile. The accent
+   * band has its own min-height scale (XL 500 · MD 420 · XS 360).
    * ──────────────────────────────────────────────────────── */
   --footer-max-w:                  1440px;
   --footer-pad-x-desktop:          var(--space-7);   /* 40 */

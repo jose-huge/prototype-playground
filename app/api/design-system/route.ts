@@ -194,7 +194,10 @@ export async function POST() {
           emit(1, "done", `${varCount} variables`);
         } else {
           const msg = varsResult.reason instanceof Error ? varsResult.reason.message : String(varsResult.reason);
-          emit(1, "done", `Skipped — ${msg.includes("403") ? "requires Figma paid plan" : msg}`);
+          const detail = msg.includes("403")
+            ? "no access, or Variables require a Figma paid plan"
+            : msg;
+          emit(1, "done", `Skipped — ${detail}`);
         }
 
         // Resolve styles list, then fetch all node batches in parallel
@@ -248,6 +251,16 @@ export async function POST() {
             stylesData: processedStyles,
             fileName:   config.fileName,
           });
+          if (snapshot.tokens.length === 0) {
+            emit(
+              3,
+              "error",
+              undefined,
+              "No design tokens found — make sure the file has published variables or styles, and that your token has access to them",
+            );
+            controller.close();
+            return;
+          }
           emit(3, "done", `${snapshot.tokens.length} tokens`);
         } catch (err) {
           emit(3, "error", undefined, err instanceof Error ? err.message : "Processing failed");

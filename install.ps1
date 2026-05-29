@@ -54,11 +54,12 @@ Pop-Location
 $portInUse = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
 if ($portInUse) {
   Write-Host ""
-  Write-Host "Port 3000 is already in use — another playground may already be running." -ForegroundColor Yellow
-  Write-Host "Open http://localhost:3000?reset=true in your browser or close the other instance first."
+  Write-Host "Port 3000 is already in use, so the playground can't start." -ForegroundColor Yellow
+  Write-Host "If it's another playground instance, open http://localhost:3000?reset=true"
+  Write-Host "Otherwise, stop whatever is using port 3000 and run this script again."
   Write-Host ""
   Read-Host "Press Enter to exit"
-  exit 0
+  exit 1
 }
 
 # ── Start dev server ───────────────────────────────────────────────────────────

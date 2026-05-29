@@ -5,7 +5,7 @@
  *
  *   - The document root (<html>) is established as a named
  *     container `pg-root` whose inline-size == viewport width.
- *   - The preview's .cp-stage__frame ALSO establishes a
+ *   - The preview's .pg-stage__frame ALSO establishes a
  *     `pg-root` container at the frame's width.
  *
  * Component CSS authors breakpoint rules as
@@ -33,7 +33,7 @@ html {
  * Same arithmetic, just cqi instead of vw. */
 @container pg-root (min-width: 0) {
   /* Type — fluid scale (lock at 600px → 1440px) */
-  :root, .cp-stage__frame {
+  :root, .pg-stage__frame {
     --fs-display-2-fluid: clamp(6.25rem,  5.3571rem + 2.381cqi,  7.5rem);
     --fs-display-m-fluid: clamp(2.75rem,  0.6071rem + 5.7143cqi, 5.75rem);
     --fs-display-s-fluid: clamp(2.75rem,  0.7857rem + 5.2381cqi, 5.5rem);

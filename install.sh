@@ -47,9 +47,10 @@ npm install --prefix "$DEST"
 # ── Check port 3000 ───────────────────────────────────────────────────────────
 if lsof -ti tcp:3000 &> /dev/null; then
   echo ""
-  echo "Port 3000 is already in use — another playground may already be running."
-  echo "Open http://localhost:3000?reset=true in your browser or close the other instance first."
-  exit 0
+  echo "Port 3000 is already in use, so the playground can't start."
+  echo "If it's another playground instance, open http://localhost:3000?reset=true"
+  echo "Otherwise, stop whatever is using port 3000 and run this script again."
+  exit 1
 fi
 
 # ── Start dev server ───────────────────────────────────────────────────────────

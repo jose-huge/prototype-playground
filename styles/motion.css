@@ -55,10 +55,10 @@
   --blur-soft:    blur(24px);   /* ambient hero treatments */
 
   /* ─── Primitives — Overlay tints (for image protection) ──── */
-  --tint-ink-10:    rgba(11, 5, 3, 0.10);
-  --tint-ink-20:    rgba(11, 5, 3, 0.20);
-  --tint-ink-40:    rgba(11, 5, 3, 0.40);
-  --tint-cream-80:  rgba(255, 239, 210, 0.80);
+  --tint-black-10:  rgba(0, 0, 0, 0.10);
+  --tint-black-20:  rgba(0, 0, 0, 0.20);
+  --tint-black-40:  rgba(0, 0, 0, 0.40);
+  --tint-warm-80:   rgba(255, 239, 210, 0.80);
   --tint-white-10:  rgba(255, 255, 255, 0.10);
   --tint-white-20:  rgba(255, 255, 255, 0.20);
 
@@ -102,24 +102,23 @@
   /* ─── Semantic — Effect tokens ───────────────────────────── */
   --effect-glass-bg:     var(--tint-white-10);
   --effect-glass-blur:   var(--blur-glass);
-  --effect-scrim:        var(--tint-ink-40);
-  --effect-image-cover:  var(--tint-cream-80);
+  --effect-scrim:        var(--tint-black-40);
+  --effect-image-cover:  var(--tint-warm-80);
 
   /* Hero scrim — bottom-weighted gradient that protects display
    * type sitting over imagery without darkening the whole frame.
-   * Matches the Figma /HP-Hero (size=XS) rgba(0,0,0,0)→rgba(0,0,0,0.4) treatment. */
+   * Ramps from transparent to a 40% black floor. */
   --effect-hero-scrim:   linear-gradient(
                             to bottom,
-                            rgba(11, 5, 3, 0)   0%,
-                            rgba(11, 5, 3, 0)   45%,
-                            rgba(11, 5, 3, 0.40) 100%
+                            rgba(0, 0, 0, 0)   0%,
+                            rgba(0, 0, 0, 0)   45%,
+                            rgba(0, 0, 0, 0.40) 100%
                          );
 
-  /* LP-Hero scrim — heavier bottom-weighted gradient. The figma
-   * source ramps to 0.8 at the bottom because LP-Hero anchors
-   * its content right at the lower edge with no extra padding
-   * underneath. Two variants: light (white text over dark scrim)
-   * and dark (black text over cream-white scrim). */
+  /* LP-Hero scrim — heavier bottom-weighted gradient. Ramps to 0.8
+   * at the bottom for content anchored at the lower edge with no
+   * extra padding underneath. Two variants: light (white text over
+   * dark scrim) and dark (black text over light scrim). */
   --effect-lp-hero-scrim-light:
         linear-gradient(
             to bottom,

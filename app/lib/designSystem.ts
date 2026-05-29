@@ -141,7 +141,7 @@ export interface SchemeSwatch {
 }
 
 export interface SchemeEntry {
-  name:       string;         // e.g. "Light", "Harvest Dark"
+  name:       string;         // e.g. "Light", "Dark"
   collection: string;         // e.g. "Color Schemes"
   tokens:     SchemeSwatch[]; // all resolved color tokens for this mode
 }
@@ -195,12 +195,8 @@ export function figmaColorToHex(color: FigmaColor): string {
  * Matches substrings in the variable name (longest match wins).
  */
 const OPACITY_COLOR_MAP: Array<[string, [number, number, number]]> = [
-  ["cream",  [255, 239, 210]],
   ["white",  [255, 255, 255]],
   ["black",  [0,   0,   0  ]],
-  ["ink",    [11,  5,   3  ]],
-  ["noir",   [11,  5,   3  ]],
-  ["rose",   [255, 134, 134]],
 ];
 
 /**
@@ -661,9 +657,9 @@ export function processTokens(input: ProcessInput): TokenSnapshot {
  * it matches the SCHEME_NAMES list used by SchemeProvider and the scheme picker.
  *
  * Example output:
- *   [data-scheme="sage-light"] {
- *     --background: #dff5dc;
- *     --foreground: #323a31;
+ *   [data-scheme="light"] {
+ *     --background: #ffffff;
+ *     --foreground: #1a1a1a;
  *     ...
  *   }
  */

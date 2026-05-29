@@ -133,7 +133,7 @@ export default function VirtualDesktop() {
             left: 0,
             right: 0,
             height: `${MENU_BAR_H}px`,
-            backgroundColor: "rgba(11, 5, 3, 0.4)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
             backdropFilter: "blur(var(--blur-glass))",
             display: "flex",
             alignItems: "center",

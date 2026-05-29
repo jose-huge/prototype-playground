@@ -60,7 +60,7 @@ When building a new component for the playground, files MUST go here:
 - Use a named export: \`export function ComponentName(...)\`
 - Do NOT use \`export default\`
 - Export the color scheme: \`export const defaultScheme = "{scheme-name}" as const;\`
-  Set the scheme to match the Figma frame (e.g. \`"white"\`, \`"harvest-light"\`, \`"dark"\`)
+  Set the scheme to match the Figma frame (e.g. \`"light"\`, \`"dark"\`)
 
 **Color scheme:**
 - Do NOT put \`data-scheme\` on the component's root element
@@ -129,18 +129,8 @@ const COMPONENT_FILE_RE = /^([A-Z][A-Za-z0-9]*)\.tsx$/;
 // Used by the preview page so it gets the right background even before the
 // design system's schemes.css is populated with full token overrides.
 const SCHEME_BACKGROUNDS: Record<string, string> = {
-  "white":         "#ffffff",
-  "harvest-light": "#faf6ef",
-  "harvest-dark":  "#554528",
-  "sage-light":    "#f6f8f6",
-  "sage-dark":     "#323a31",
-  "sky-light":     "#f5fafd",
-  "sky-dark":      "#303e48",
-  "rose-light":    "#fef3f0",
-  "rose-dark":     "#541515",
-  "noir-light":    "#f5f5f5",
-  "noir-dark":     "#000000",
-  "dark":          "#1a1a1a",
+  "light": "#ffffff",
+  "dark":  "#1a1a1a",
 };
 
 function buildPreviewPage(name: string, hasDefaultScheme: boolean): string {

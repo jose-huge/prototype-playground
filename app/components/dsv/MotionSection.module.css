@@ -33,7 +33,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--color-noir-darkest, #000);
+  background: var(--color-fg, #1a1a1a);
   transform: translateX(0);
   transition: transform
     var(--ball-dur,  var(--duration-sm, 200ms))
@@ -65,7 +65,7 @@
 .shiftBar {
   height: 8px;
   border-radius: 999px;
-  background: var(--color-noir-darkest, #000);
+  background: var(--color-fg, #1a1a1a);
   flex-shrink: 0;
 }
 
