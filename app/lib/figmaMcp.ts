@@ -507,6 +507,8 @@ export async function getVariationContext(
     `Export as a named export: ${parentComponentName}${varCap}`,
     `e.g. ${parentComponentName}${varCap}`,
     ``,
+    `Do not open a browser, navigate to a preview URL, or take screenshots to verify the result — the playground renders the component automatically. Stop once the component file and its CSS module are written.`,
+    ``,
     `---`,
     ``,
     figmaMcpContext,

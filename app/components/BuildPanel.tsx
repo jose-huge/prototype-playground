@@ -201,8 +201,9 @@ export default function BuildPanel({
       selection?.frame.parentName,
     );
     const headerInstruction = `Add this exact comment block at the very top of the output file, before any imports:\n\`\`\`\n${header}\n\`\`\``;
+    const noVerifyInstruction = `Do not open a browser, navigate to a preview URL, or take screenshots to verify the result — the playground renders the component automatically. Stop once the component file and its CSS module are written.`;
     const gridBlock = gridPromptBlock(loadGrid());
-    return [prompt.trim(), "", headerInstruction, "", "---", "", gridBlock, "", "---", "", selection?.mcpContext ?? ""].join("\n");
+    return [prompt.trim(), "", headerInstruction, "", noVerifyInstruction, "", "---", "", gridBlock, "", "---", "", selection?.mcpContext ?? ""].join("\n");
   };
 
   // ── Clipboard helper ─────────────────────────────────────────────────────────
