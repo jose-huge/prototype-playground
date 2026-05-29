@@ -1,7 +1,7 @@
 "use client";
 
 import { Palette, Image as ImageIcon, AlertTriangle, Plus, Download } from "lucide-react";
-import { SCHEME_NAMES, type SchemeName } from "./SchemeContext";
+import { type SchemeName } from "./SchemeContext";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -18,18 +18,23 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const SCHEME_LABELS: Record<SchemeName | "default", string> = {
-  default: "Default",
-  light: "Light",
-  dark: "Dark",
-};
-
 export type ToolbarOption = { value: string; label: string };
+
+// Fallback scheme options for the blank starter (no design system imported).
+const DEFAULT_SCHEME_OPTIONS: ToolbarOption[] = [
+  { value: "light", label: "Light" },
+  { value: "dark",  label: "Dark"  },
+];
 
 type Props = {
   // Scheme — omit entirely to hide the scheme selector (e.g. on figma-build)
   scheme?:           SchemeName | undefined;
   onSchemeChange?:   (scheme: SchemeName | undefined) => void;
+  /**
+   * Scheme picker options. Sourced from the imported design system's modes;
+   * falls back to Light/Dark when nothing is imported.
+   */
+  schemeOptions?:    ToolbarOption[];
   // Background
   background?:          string;
   onBackgroundChange?:  (background: string) => void;
@@ -72,6 +77,7 @@ const ANIMATION_SHORT: Record<string, string> = {
 export default function PlaygroundToolbar({
   scheme,
   onSchemeChange,
+  schemeOptions,
   background,
   onBackgroundChange,
   backgroundOptions,
@@ -85,6 +91,7 @@ export default function PlaygroundToolbar({
   onSelectVariation,
   onPackage,
 }: Props) {
+  const schemeOpts      = schemeOptions?.length ? schemeOptions : DEFAULT_SCHEME_OPTIONS;
   const showScheme      = !!onSchemeChange;
   const showBackground  = !!backgroundOptions?.length && !!onBackgroundChange;
   const showFramework   = !!framework;
@@ -123,16 +130,16 @@ export default function PlaygroundToolbar({
           </span>
           <Select
             value={scheme ?? "default"}
-            onValueChange={(v) => onSchemeChange!(v === "default" ? undefined : (v as SchemeName))}
+            onValueChange={(v) => onSchemeChange!(v == null || v === "default" ? undefined : v)}
           >
             <SelectTrigger className="h-8 w-44 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="default">{SCHEME_LABELS.default}</SelectItem>
-              {SCHEME_NAMES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {SCHEME_LABELS[s]}
+              <SelectItem value="default">Default</SelectItem>
+              {schemeOpts.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
                 </SelectItem>
               ))}
             </SelectContent>

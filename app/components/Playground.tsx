@@ -53,8 +53,9 @@ import playgroundStyles from "./Playground.module.css";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import DesignMdView from "./DesignMdView";
-import PlaygroundToolbar from "./PlaygroundToolbar";
+import PlaygroundToolbar, { type ToolbarOption } from "./PlaygroundToolbar";
 import { SchemeProvider, type SchemeName } from "./SchemeContext";
+import { normalizeName, type SchemeEntry } from "@/app/lib/designSystem";
 import FigmaConfigPanel from "./FigmaConfigPanel";
 import { FigmaConnectionContent } from "./FigmaConnectionContent";
 import FramePicker, { type SelectedFrame } from "./FramePicker";
@@ -428,6 +429,9 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
   const [localItem, setLocalItem] = useState("Design Variables");
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [schemeOverride, setSchemeOverride] = useState<SchemeName | undefined>(undefined);
+  // Scheme picker options, sourced from the imported design system's modes.
+  // Empty until loaded; PlaygroundToolbar falls back to Light/Dark when empty.
+  const [schemeOptions, setSchemeOptions] = useState<ToolbarOption[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Which level of Settings is active: 'l1' = main settings, 'l2' = Figma connection
   const [settingsLevel, setSettingsLevel] = useState<'l1' | 'l2'>('l1');
@@ -588,6 +592,33 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load the scheme picker options from the imported design system. Re-runs
+  // when an import finishes (isImportingDesignSystem flips back to false) so
+  // the picker reflects the freshly imported modes. Each Figma variable-mode
+  // becomes one option; the value is the normalised data-scheme (matching
+  // schemes.css) and the label is the original mode name. Falls back to
+  // Light/Dark in PlaygroundToolbar when nothing is imported.
+  useEffect(() => {
+    if (isImportingDesignSystem) return; // wait until the import settles
+    let cancelled = false;
+    fetch("/api/design-system")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((snapshot: { schemes?: SchemeEntry[] } | null) => {
+        if (cancelled || !snapshot?.schemes?.length) return;
+        const seen = new Set<string>();
+        const opts: ToolbarOption[] = [];
+        for (const s of snapshot.schemes) {
+          const value = normalizeName(s.name);
+          if (!value || seen.has(value)) continue;
+          seen.add(value);
+          opts.push({ value, label: s.name });
+        }
+        setSchemeOptions(opts);
+      })
+      .catch(() => { /* blank starter — keep Light/Dark fallback */ });
+    return () => { cancelled = true; };
+  }, [isImportingDesignSystem]);
 
   // Handle "View reference page" navigation from DesignSystemImport modal
   useEffect(() => {
@@ -1104,6 +1135,7 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
               <PlaygroundToolbar
                 scheme={!isFigmaBuild ? schemeOverride : undefined}
                 onSchemeChange={!isFigmaBuild ? setSchemeOverride : undefined}
+                schemeOptions={!isFigmaBuild ? schemeOptions : undefined}
                 framework={isFigmaBuild ? framework : undefined}
                 animation={isFigmaBuild ? animation : undefined}
                 originalFramework={isFigmaBuild ? (originalFramework ?? undefined) : undefined}
