@@ -455,10 +455,6 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
     date:      string;
   } | null>(null);
 
-  // Names of component files that already existed on disk when this session
-  // started. Used to distinguish pre-existing ('done') from newly built ('current').
-  const startupNamesRef = useRef<Set<string> | null>(null);
-
   // DONE section collapse state
   const [doneOpen, setDoneOpen] = useState(false);
 
@@ -531,14 +527,6 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
       .then((data: { components: Array<{ componentName: string }> }) => {
         const diskNames = data.components.map((c) => c.componentName);
 
-        // First scan: snapshot what was already on disk at session start.
-        // Files present now = pre-existing ('done').
-        // Files that appear on subsequent polls = newly built ('current').
-        const isFirstScan = startupNamesRef.current === null;
-        if (isFirstScan) {
-          startupNamesRef.current = new Set(diskNames.map((n) => n.toLowerCase()));
-        }
-
         setBuiltComponentsList((prev) => {
           // If prev is still [] it means the lazy initializer ran on the server with no
           // localStorage and React's hydration kept that value. Fall back to the client-
@@ -554,21 +542,23 @@ function PlaygroundInner({ view, onNavigate, openSettings: openSettingsOnMount }
           // Disk-based components — use PascalCase name from disk, keep existing metadata
           const diskEntries = diskNames.map((name) => {
             const existing = prevMapLower.get(name.toLowerCase());
+            // A persisted status (from a prior scan in this browser) always wins.
             if (existing) return { ...existing, name };
 
-            // First scan: file pre-existed this session — mark as done
-            if (isFirstScan) {
-              return { name, frame: "", builtWith: "", date: "", status: 'done' as const, variations: [] };
-            }
-
-            // New file appeared during this session — check for pending build metadata
+            // Newly discovered in this browser. If we kicked off its build this
+            // session, attach the pending build metadata.
             const pending = pendingBuildRef.current;
             if (pending && name.toLowerCase() === pending.name.toLowerCase()) {
               pendingBuildRef.current = null;
               return { ...pending, name, status: 'current' as const, variations: [] };
             }
 
-            // New file with no pending build (e.g. pasted directly into Claude Code) → current
+            // Otherwise start with empty metadata. Either way a first-seen component
+            // ALWAYS starts in 'current' — components only move to 'done' via an
+            // explicit user action, never automatically. This keeps the result
+            // independent of WHEN the browser first loaded the page, so a fresh load
+            // after a build (e.g. the Claude preview browser) no longer auto-files a
+            // just-built component as 'done'.
             return { name, frame: "", builtWith: "", date: "", status: 'current' as const, variations: [] };
           });
 
